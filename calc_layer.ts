@@ -33,17 +33,31 @@ class CalcLayer extends Layer {
   backward(bottoms: any[], top_deltas: any[], callback: (bottom_deltas: any[]) => void): void {
     var data: number[] = bottoms[0];
     var top_delta: number[] = top_deltas[0];
-    var delta_weight = 0.0;
     
     var bottom_delta: number[] = [];
     
     for (var i = 0; i < data.length; i++) {
       bottom_delta[i] = top_delta[i] * this.weight;
-      delta_weight += top_delta[i] * data[i];
     }
     
     setImmediate(function(){
       callback([bottom_delta]);
+    });
+  }
+  
+  calculateUpdateParams(bottoms: any[], top_deltas: any[], callback: () => void): void {
+    var data: number[] = bottoms[0];
+    var top_delta: number[] = top_deltas[0];
+    var delta_weight = 0.0;
+    
+    for (var i = 0; i < data.length; i++) {
+      delta_weight += top_delta[i] * data[i];
+    }
+    
+    this.delta_weight = delta_weight;
+    
+    setImmediate(function(){
+      callback();
     });
   }
 

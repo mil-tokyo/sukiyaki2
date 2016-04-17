@@ -13,6 +13,9 @@ class Layer {
   backward(bottoms: any[], top_deltas: any[], callback: (bottom_deltas: any[]) => void): void {
     throw new Error('Not implemented');
   }
+  
+  calculateUpdateParams(bottoms: any[], top_deltas: any[], callback: () => void): void {
+  }
 
   release(): void {
     //release internal data for a batch
