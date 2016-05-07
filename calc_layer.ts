@@ -6,6 +6,7 @@ class CalcLayer extends Layer {
 
   constructor(params: any) {
     super();
+    this.need_update = true;
     this.weight = 2.0;
     this.delta_weight = 0.0;
     this.train_params = ['weight'];
@@ -21,12 +22,12 @@ class CalcLayer extends Layer {
     var data: number[] = bottoms[0];
     var output: number[] = [];
     for (var i = 0; i < data.length; i++) {
-      var element = data[i];
+      var element = data[i] * this.weight;
       output.push(element);
     }
 
     setImmediate(function() {
-      callback([element]);
+      callback([output]);
     });
   }
 

@@ -1,6 +1,11 @@
 class Layer {
   train_params: string[];
   delta_params: string[];
+  need_update: boolean;
+  
+  constructor() {
+    this.need_update = false;
+  }
   
   init(callback: () => void): void {
     setImmediate(callback);
@@ -15,6 +20,9 @@ class Layer {
   }
   
   calculateUpdateParams(bottoms: any[], top_deltas: any[], callback: () => void): void {
+    setImmediate(function(){
+      callback();
+    });
   }
 
   release(): void {

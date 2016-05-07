@@ -4,8 +4,8 @@ import DataLayer = require('./data_layer');
 import LossLayer = require('./loss_layer');
 
 class LayerFactory {
-  static create(name: string, params: any): Layer {
-    switch (name) {
+  static create(type: string, params: any): Layer {
+    switch (type) {
       case 'data':
       return new DataLayer(params);
       case 'calc':
