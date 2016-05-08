@@ -5,8 +5,9 @@ import LossLayer = require('./loss_layer');
 import MnistDataLayer = require('./mnist_data_layer');
 import SoftmaxCrossEntropyLayer = require('./softmax_cross_entropy_layer');
 import ReluLayer = require('./relu_layer');
+import AccuracyLayer = require('./accuracy_layer');
 
-class LayerFactory {
+class LayerFactory {  
   static create(type: string, params: any): Layer {
     switch (type) {
       case 'data':
@@ -21,6 +22,8 @@ class LayerFactory {
         return new SoftmaxCrossEntropyLayer(params);
       case 'relu':
         return new ReluLayer(params);
+      case 'accuracy':
+        return new AccuracyLayer(params);
       default:
         throw new Error('Unknown layer');
     }

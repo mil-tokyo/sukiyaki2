@@ -8,19 +8,19 @@ class MnistDataLayer extends Layer {
   length: number;
   data: $M.Matrix;
   label: $M.Matrix;
-  constructor(params: any) {
+  data_dim: number = 28 * 28;
+  constructor(public params: any) {
     super();
   }
 
   init(callback: () => void): void {
-    var label_ary = new Uint8Array(fs.readFileSync('mnist/label.bin').buffer);
-    fs.readFile('mnist/data.bin', (err, data) => {
+    var label_ary = new Uint8Array(fs.readFileSync(this.params.label).buffer);
+    fs.readFile(this.params.data, (err, data) => {
       var data_ary = new Float32Array(data.buffer);
       this.label = $M.typedarray2mat([1, label_ary.length], 'uint8', label_ary);
       this.length = label_ary.length;
-      var data_dim = 28 * 28;
       console.log('Data length set to ' + this.length);
-      this.data = $M.typedarray2mat([data_dim, this.length], 'single', data_ary);
+      this.data = $M.typedarray2mat([this.data_dim, this.length], 'single', data_ary);
       callback();
     });
   }
@@ -28,7 +28,9 @@ class MnistDataLayer extends Layer {
   forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
     var range: $M.Matrix = bottoms[0];//[from, to]
     var range_min = range.get(1);
-    var range_max = range.get(2);
+    var range_size = range.get(2);
+    range_min = range_min % this.length;
+    var range_max = range_min + range_size - 1;
     var batch_data = this.data.get($M.colon(), $M.colon(range_min, range_max));
     var batch_label = this.label.get($M.colon(), $M.colon(range_min, range_max));
 

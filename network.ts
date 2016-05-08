@@ -5,12 +5,14 @@ import LayerFactory = require('./layer_factory');
 
 
 class Network {
-  layers: { name: string, type: string, params: any, inputs: string[], outputs: string[] }[];
+  phase: string;
+  layers: { name: string, type: string, params: any, inputs: string[], outputs: string[], phase?: string[] }[];
   layer_instances: { [index: string]: Layer };
   blobs_forward: { [index: string]: $M.Matrix };
   blobs_backward: { [index: string]: $M.Matrix };
 
-  constructor(layers: { name: string, type: string, params: any, inputs: string[], outputs: string[] }[]) {
+  constructor(layers: { name: string, type: string, params: any, inputs: string[], outputs: string[], phase?: string[] }[]) {
+    this.phase = 'test';
     this.layers = layers;
     this.layer_instances = {};
     //construct layers
@@ -47,8 +49,9 @@ class Network {
     }
 
     var layer_index = 0;
+    var target_layers = this.layers.filter((item) => (item.phase == null) || (item.phase.indexOf(this.phase) >= 0));
     var forward_next = () => {//arrow function preserves "this"
-      var layer_prop = this.layers[layer_index];
+      var layer_prop = target_layers[layer_index];
       var layer_instance = this.layer_instances[layer_prop.name];
       // prepare bottom vars
       var bottom_vars = [];
@@ -67,7 +70,7 @@ class Network {
         }
 
         layer_index++;
-        if (layer_index < this.layers.length) {
+        if (layer_index < target_layers.length) {
           forward_next();
         } else {
           // forward of all layers has been called
@@ -80,11 +83,12 @@ class Network {
   }
 
   backward(callback: () => void): void {
-    var layer_index = this.layers.length - 1;
+    var target_layers = this.layers.filter((item) => (item.phase == null) || (item.phase.indexOf(this.phase) >= 0));
+    var layer_index = target_layers.length - 1;
     var update_until = layer_index;
     //find most bottom layer which requires update
-    for (var index = 0; index < this.layers.length; index++) {
-      var layer_prop = this.layers[index];
+    for (var index = 0; index < target_layers.length; index++) {
+      var layer_prop = target_layers[index];
       var layer_instance = this.layer_instances[layer_prop.name];
       if (layer_instance.need_update) {
         update_until = index;
@@ -93,7 +97,7 @@ class Network {
     }
 
     var backward_next = () => {
-      var layer_prop = this.layers[layer_index];
+      var layer_prop = target_layers[layer_index];
       var layer_instance = this.layer_instances[layer_prop.name];
       // prepare bottom vars
       var bottom_vars = [];
