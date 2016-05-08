@@ -1,3 +1,6 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
+
 class Layer {
   train_params: string[];
   delta_params: string[];
@@ -11,15 +14,15 @@ class Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: any[], callback: (tops: any[]) => void): void {
+  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
     throw new Error('Not implemented');
   }
 
-  backward(bottoms: any[], top_deltas: any[], callback: (bottom_deltas: any[]) => void): void {
+  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
     throw new Error('Not implemented');
   }
   
-  calculateUpdateParams(bottoms: any[], top_deltas: any[], callback: () => void): void {
+  calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: () => void): void {
     setImmediate(function(){
       callback();
     });

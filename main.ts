@@ -1,3 +1,5 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
 import Network = require('./network');
 import OptimizerSGD = require('./optimizer_sgd');
 
@@ -16,21 +18,21 @@ function main() {
     console.log("iteration " + iter);
     var range_bottom = Math.random() * 5 | 0;
     var range_top = range_bottom + 3;
-    var input_vars: {[index:string]:number[]} = {'batch':[range_bottom,range_top]};
+    var input_vars: {[index:string]:$M.Matrix} = {'batch':$M.jsa2mat([0,1])};
     opt.update(input_vars, () => {
       console.log('loss: ' + net.blobs_forward['loss']);
-      if (iter < 10) {
+      if (iter < 1000) {
         iter++;
         next_iter();
       } else {
         console.log("optimization finished");
-        console.log("predicted weight: " + net.layer_instances['c']['weight']);
+        console.log("predicted weight: " + net.layer_instances['c']['weight'].toString());
       }
     });
     
   };
   
-  next_iter();  
+  next_iter();
   return opt;
 }
 

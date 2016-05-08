@@ -1,3 +1,5 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
 import Layer = require('./layer');
 
 class DataLayer extends Layer {
@@ -12,14 +14,11 @@ class DataLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: any[], callback: (tops: any[]) => void): void {
-    var range: number[] = bottoms[0];//[from, to]
-    var data = [];
-    var labels = [];
-    for (var i = range[0]; i < range[1]; i++) {
-      data.push(i);
-      labels.push(i * 10);
-    }
+  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+    var range: $M.Matrix = bottoms[0];//[from, to]
+    var model_weight = $M.jsa2mat([[1,2,3],[4,5,6]]);
+    var data = $M.rand(3,5);
+    var labels = $M.mtimes(model_weight, data);
 
     setTimeout(function() {
       callback([data, labels]);

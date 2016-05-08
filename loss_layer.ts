@@ -1,3 +1,5 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
 import Layer = require('./layer');
 
 class LossLayer extends Layer {
@@ -10,32 +12,24 @@ class LossLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: any[], callback: (tops: any[]) => void): void {
+  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
     //square loss
-    var data: number[] = bottoms[0];
-    var gt: number[] = bottoms[1];
-    var output: number[] = [];
-    var loss = 0.0;
-    for (var i = 0; i < data.length; i++) {
-      loss += 0.5 * Math.pow(data[i] - gt[i], 2.0);
-    }
-    output.push(loss);//scalar regardless of batch size
+    var data: $M.Matrix = bottoms[0];
+    var gt: $M.Matrix = bottoms[1];
+    var loss = $M.sum($M.sum($M.power($M.minus(data, gt), 2.0)));
 
     setImmediate(function() {
-      callback([output]);
+      callback([loss]);
     });
   }
 
-  backward(bottoms: any[], top_deltas: any[], callback: (bottom_deltas: any[]) => void): void {
+  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
     //top_deltas[0] is usually 1.0
-    var data: number[] = bottoms[0];
-    var gt: number[] = bottoms[1];
-    var top_delta: number = top_deltas[0];//scalar
+    var data: $M.Matrix = bottoms[0];
+    var gt: $M.Matrix = bottoms[1];
+    var top_delta: $M.Matrix = top_deltas[0];//scalar
     
-    var bottom_delta: number[] = [];
-    for (var i = 0 ; i < data.length; i++) {
-      bottom_delta.push((data[i]-gt[i])*top_delta);
-    }
+    var bottom_delta = $M.times($M.minus(data, gt), top_delta);
     
     setImmediate(function(){
       callback([bottom_delta]);

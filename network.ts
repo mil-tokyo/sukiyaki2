@@ -1,11 +1,14 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
 import Layer = require('./layer');
 import LayerFactory = require('./layer_factory');
+
 
 class Network {
   layers: {name: string, type: string, params: any, inputs: string[], outputs: string[]}[];
   layer_instances: {[index: string]: Layer};
-  blobs_forward: {[index: string]: number[]};
-  blobs_backward: {[index: string]: number[]};
+  blobs_forward: {[index: string]: $M.Matrix};
+  blobs_backward: {[index: string]: $M.Matrix};
   
   constructor(layers: {name: string, type: string, params: any, inputs: string[], outputs: string[]}[]) {
     this.layers = layers;
@@ -18,7 +21,7 @@ class Network {
     }
   }
   
-  forward(input_vars: {[index:string]:number[]}, callback: () => void): void {
+  forward(input_vars: {[index:string]:$M.Matrix}, callback: () => void): void {
     this.blobs_forward = {};
     this.blobs_backward = {};
     for (var key in input_vars) {
@@ -91,7 +94,7 @@ class Network {
         if (this.blobs_backward[var_name] == null) {
           //give matrix of 1 with same shape of forward variable
           var top_forward = this.blobs_forward[var_name];
-          this.blobs_backward[var_name] = top_forward.map(() => 1.0);
+          this.blobs_backward[var_name] = $M.ones($M.size(top_forward));
         }
         top_deltas.push(this.blobs_backward[var_name]);
       }

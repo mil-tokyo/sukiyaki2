@@ -1,3 +1,5 @@
+/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+import $M = require('milsushi2');
 import Network = require('./network');
 
 class OptimizerSGD {
@@ -19,7 +21,7 @@ class OptimizerSGD {
         }
         for (var index = 0; index < layer_instance.train_params.length; index++) {
           var delta_param_name = layer_instance.delta_params[index];
-          layer_instance[delta_param_name] = 0.0;
+          layer_instance[delta_param_name] = $M.zeros($M.size(layer_instance[delta_param_name]));
         }
       }
     }
@@ -36,13 +38,16 @@ class OptimizerSGD {
         for (var index = 0; index < layer_instance.train_params.length; index++) {
           var train_param_name = layer_instance.train_params[index];
           var delta_param_name = layer_instance.delta_params[index];
-          layer_instance[train_param_name] = layer_instance[train_param_name] - this.lr * layer_instance[delta_param_name];
+          var cur_weight : $M.Matrix = layer_instance[train_param_name];
+          var cur_grad : $M.Matrix = layer_instance[delta_param_name];
+          var new_weight = $M.plus(cur_weight, $M.times(cur_grad, -this.lr));
+          layer_instance[train_param_name] = new_weight;
         }
       }
     }
   }
   
-  update(input_vars: {[index:string]:number[]}, callback: () => void): void {
+  update(input_vars: {[index:string]:$M.Matrix}, callback: () => void): void {
     this.zero_grads();
     this.net.forward(input_vars, () => {
       this.net.backward(() => {
