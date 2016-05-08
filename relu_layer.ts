@@ -1,6 +1,6 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
-
+import ForwardConfiguration = require('./forward_configuration');
 import Layer = require('./layer');
 
 class ReluLayer extends Layer {
@@ -13,7 +13,7 @@ class ReluLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     //batch: [dim, sample]
@@ -23,7 +23,7 @@ class ReluLayer extends Layer {
     });
   }
 
-  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
+  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
     

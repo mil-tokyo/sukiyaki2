@@ -2,6 +2,7 @@
 import $M = require('milsushi2');
 import Layer = require('./layer');
 import LayerFactory = require('./layer_factory');
+import ForwardConfiguration = require('./forward_configuration');
 
 
 class Network {
@@ -50,6 +51,8 @@ class Network {
 
     var layer_index = 0;
     var target_layers = this.layers.filter((item) => (item.phase == null) || (item.phase.indexOf(this.phase) >= 0));
+    var forward_config = new ForwardConfiguration();
+    forward_config.phase = this.phase;
     var forward_next = () => {//arrow function preserves "this"
       var layer_prop = target_layers[layer_index];
       var layer_instance = this.layer_instances[layer_prop.name];
@@ -61,7 +64,7 @@ class Network {
       }
 
       //console.log('forward ' + layer_prop.name);
-      layer_instance.forward(bottom_vars, (tops) => {
+      layer_instance.forward(bottom_vars, forward_config, (tops) => {
         // save top vars
         for (var index = 0; index < tops.length; index++) {
           var top_var = tops[index];
@@ -96,6 +99,9 @@ class Network {
       }
     }
 
+    var forward_config = new ForwardConfiguration();
+    forward_config.phase = this.phase;
+
     var backward_next = () => {
       var layer_prop = target_layers[layer_index];
       var layer_instance = this.layer_instances[layer_prop.name];
@@ -120,11 +126,11 @@ class Network {
       }
 
       //console.log('calculateUpdateParams ' + layer_prop.name);
-      layer_instance.calculateUpdateParams(bottom_vars, top_deltas, () => {
+      layer_instance.calculateUpdateParams(bottom_vars, top_deltas, forward_config, () => {
         if (update_until < layer_index) {
           // backward needed
           //console.log('backward ' + layer_prop.name);
-          layer_instance.backward(bottom_vars, top_deltas, (bottom_deltas: any[]) => {
+          layer_instance.backward(bottom_vars, top_deltas, forward_config, (bottom_deltas: any[]) => {
             // save bottom_delta vars
             for (var index = 0; index < bottom_deltas.length; index++) {
               var bottom_delta = bottom_deltas[index];

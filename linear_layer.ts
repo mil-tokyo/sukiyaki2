@@ -1,7 +1,7 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
-
 import Layer = require('./layer');
+import ForwardConfiguration = require('./forward_configuration');
 
 class LinearLayer extends Layer {
   weight: $M.Matrix;
@@ -26,7 +26,7 @@ class LinearLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     //batch: [dim, sample]
@@ -38,7 +38,7 @@ class LinearLayer extends Layer {
     });
   }
 
-  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
+  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 
@@ -49,7 +49,7 @@ class LinearLayer extends Layer {
     });
   }
 
-  calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: () => void): void {
+  calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: () => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 

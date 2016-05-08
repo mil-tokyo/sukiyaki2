@@ -1,5 +1,6 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
+import ForwardConfiguration = require('./forward_configuration');
 import Layer = require('./layer');
 
 class SoftmaxCrossEntropyLayer extends Layer {
@@ -12,7 +13,7 @@ class SoftmaxCrossEntropyLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     //softmax cross entropy
     var data: $M.Matrix = bottoms[0];
     var gtlabel: $M.Matrix = bottoms[1];
@@ -34,7 +35,7 @@ class SoftmaxCrossEntropyLayer extends Layer {
     });
   }
 
-  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
+  backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
     //top_deltas[0] is usually 1.0
     var data: $M.Matrix = bottoms[0];
     var gtlabel: $M.Matrix = bottoms[1];

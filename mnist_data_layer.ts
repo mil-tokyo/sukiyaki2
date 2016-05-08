@@ -1,6 +1,7 @@
 /// <reference path="./typings/main.d.ts"/>
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
+import ForwardConfiguration = require('./forward_configuration');
 import Layer = require('./layer');
 import fs = require('fs');
 
@@ -25,7 +26,7 @@ class MnistDataLayer extends Layer {
     });
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     var range: $M.Matrix = bottoms[0];//[from, to]
     var range_min = range.get(1);
     var range_size = range.get(2);

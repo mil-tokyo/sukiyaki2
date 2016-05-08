@@ -1,5 +1,6 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
+import ForwardConfiguration = require('./forward_configuration');
 import Layer = require('./layer');
 
 class AccuracyLayer extends Layer {
@@ -11,7 +12,7 @@ class AccuracyLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     //softmax cross entropy
     var data: $M.Matrix = bottoms[0];
     var gtlabel: $M.Matrix = bottoms[1];//label: 0 to nlabel-1

@@ -1,5 +1,6 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
+import ForwardConfiguration = require('./forward_configuration');
 import Layer = require('./layer');
 
 class DataLayer extends Layer {
@@ -14,7 +15,7 @@ class DataLayer extends Layer {
     setImmediate(callback);
   }
 
-  forward(bottoms: $M.Matrix[], callback: (tops: $M.Matrix[]) => void): void {
+  forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     var range: $M.Matrix = bottoms[0];//[from, to]
     var model_weight = $M.jsa2mat([[1,2,3],[4,5,6]]);
     var data = $M.rand(3,5);
