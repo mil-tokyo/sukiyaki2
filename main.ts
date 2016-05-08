@@ -39,7 +39,9 @@ function main() {
 function train_mnist() {
   var layers = [
     { name: "d", type: "mnist_data", params: {}, inputs: ["batch"], outputs: ["data", "label"] },
-    { name: "c", type: "calc", params: {}, inputs: ["data"], outputs: ["pred"] },
+    { name: "fc1", type: "linear", params: {in_size: 784, out_size: 100}, inputs: ["data"], outputs: ["fc1"] },
+    { name: "relu1", type: "relu", params: {}, inputs: ["fc1"], outputs: ["relu1"]},
+    { name: "fc2", type: "linear", params: {in_size: 100, out_size: 10}, inputs: ["relu1"], outputs: ["pred"] },
     { name: "l", type: "softmax_cross_entropy", params: {}, inputs: ["pred", "label"], outputs: ["loss"] }
   ];
 

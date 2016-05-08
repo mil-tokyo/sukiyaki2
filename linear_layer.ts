@@ -3,7 +3,7 @@ import $M = require('milsushi2');
 
 import Layer = require('./layer');
 
-class CalcLayer extends Layer {
+class LinearLayer extends Layer {
   weight: $M.Matrix;
   bias: $M.Matrix;
   delta_weight: $M.Matrix;
@@ -12,10 +12,12 @@ class CalcLayer extends Layer {
   constructor(params: any) {
     super();
     this.need_update = true;
-    this.weight = $M.times($M.randn(10,784), 1.0 / Math.sqrt(784));
-    this.bias = $M.zeros(10, 1);
-    this.delta_weight = $M.zeros(10,784);
-    this.delta_bias = $M.zeros(10, 1);
+    var in_size = params.in_size;
+    var out_size = params.out_size;
+    this.weight = $M.times($M.randn(out_size, in_size), 1.0 / Math.sqrt(in_size));
+    this.bias = $M.zeros(out_size, 1);
+    this.delta_weight = $M.zeros(out_size, in_size);
+    this.delta_bias = $M.zeros(out_size, 1);
     this.train_params = ['weight', 'bias'];
     this.delta_params = ['delta_weight', 'delta_bias'];
   }
@@ -39,25 +41,25 @@ class CalcLayer extends Layer {
   backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: (bottom_deltas: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
-    
+
     var bottom_delta = $M.mtimes($M.t(this.weight), top_delta);
-    
-    setImmediate(function(){
+
+    setImmediate(function() {
       callback([bottom_delta]);
     });
   }
-  
+
   calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], callback: () => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
-    
+
     var delta_weight = $M.mtimes(top_delta, $M.t(data));
     var delta_bias = $M.sum(top_delta, 2);
-    
+
     this.delta_weight = $M.plus(this.delta_weight, delta_weight);
     this.delta_bias = $M.plus(this.delta_bias, delta_bias);
-    
-    setImmediate(function(){
+
+    setImmediate(function() {
       callback();
     });
   }
@@ -71,4 +73,4 @@ class CalcLayer extends Layer {
   }
 }
 
-export = CalcLayer;
+export = LinearLayer;
