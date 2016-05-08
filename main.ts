@@ -2,6 +2,8 @@
 import $M = require('milsushi2');
 import Network = require('./network');
 import OptimizerSGD = require('./optimizer_sgd');
+import ArraySerializer = require('./array_serializer');
+import fs = require('fs');
 
 function train_mnist() {
   var layers = [
@@ -18,6 +20,12 @@ function train_mnist() {
   net.init(() => {
     var opt = new OptimizerSGD(net, 1e-3);
     var batch_size = 100;
+    
+    if (false) {
+      console.log('loading net');
+      var buf = new Uint8Array(fs.readFileSync('/tmp/sukiyaki_weight.bin').buffer);
+      ArraySerializer.load(buf, net);
+    }
 
     var iter = 0;
     var max_iter = 10000;
@@ -55,6 +63,9 @@ function train_mnist() {
       net.forward(input_vars, () => {
         var acc = net.blobs_forward['accuracy'].get();
         console.log('accuracy ' + acc);
+        console.log('saving net');
+        var buf = ArraySerializer.dump(net);
+        fs.writeFileSync('/tmp/sukiyaki_weight.bin', new Buffer(buf));
         if (iter < max_iter) {
           next_iter();
         }
