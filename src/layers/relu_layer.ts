@@ -1,9 +1,9 @@
-/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+/// <reference path="../../node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
+import ForwardConfiguration = require('../forward_configuration');
 import Layer = require('./layer');
-import ForwardConfiguration = require('./forward_configuration');
 
-class LossLayer extends Layer {
+class ReluLayer extends Layer {
 
   constructor(params: any) {
     super();
@@ -14,23 +14,22 @@ class LossLayer extends Layer {
   }
 
   forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
-    //square loss
+    //multiply input by weight
     var data: $M.Matrix = bottoms[0];
-    var gt: $M.Matrix = bottoms[1];
-    var loss = $M.sum($M.sum($M.power($M.minus(data, gt), 2.0)));
-
+    //batch: [dim, sample]
+    var output = $M.max(data, 0);
     setImmediate(function() {
-      callback([loss]);
+      callback([output]);
     });
   }
 
   backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
-    //top_deltas[0] is usually 1.0
     var data: $M.Matrix = bottoms[0];
-    var gt: $M.Matrix = bottoms[1];
-    var top_delta: $M.Matrix = top_deltas[0];//scalar
+    var top_delta: $M.Matrix = top_deltas[0];
     
-    var bottom_delta = $M.times($M.minus(data, gt), top_delta);
+    var coef = $M.zeros($M.size(data));
+    coef.set($M.gt(data, 0), 1.0);
+    var bottom_delta = $M.times(top_delta, coef);
     
     setImmediate(function(){
       callback([bottom_delta]);
@@ -46,4 +45,4 @@ class LossLayer extends Layer {
   }
 }
 
-export = LossLayer;
+export = ReluLayer;

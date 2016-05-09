@@ -1,7 +1,7 @@
-/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+/// <reference path="../node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
-import Layer = require('./layer');
-import LayerFactory = require('./layer_factory');
+import Layer = require('./layers/layer');
+import LayerFactory = require('./layers/layer_factory');
 import ForwardConfiguration = require('./forward_configuration');
 
 

@@ -1,6 +1,6 @@
-/// <reference path="./node_modules/milsushi2/index.d.ts"/>
+/// <reference path="../node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
-import Layer = require('./layer');
+import Layer = require('./layers/layer');
 import Network = require('./network');
 
 class ArraySerializer {
