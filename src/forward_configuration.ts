@@ -1,5 +1,6 @@
 class ForwardConfiguration {
   phase: string;
+  devicetype: string;
   constructor() {
   }
 }

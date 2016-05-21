@@ -34,6 +34,10 @@ class MnistDataLayer extends Layer {
     var range_max = range_min + range_size - 1;
     var batch_data = this.data.get($M.colon(), $M.colon(range_min, range_max));
     var batch_label = this.label.get($M.colon(), $M.colon(range_min, range_max));
+    if (config.devicetype == 'cl') {
+      batch_data = $M.gpuArray(batch_data);
+      batch_label = $M.gpuArray(batch_label);
+    }
 
     setTimeout(function() {
       callback([batch_data, batch_label]);

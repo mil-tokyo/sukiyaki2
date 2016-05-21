@@ -5,7 +5,8 @@ import OptimizerSGD = require('./src/optimizers/optimizer_sgd');
 import ArraySerializer = require('./src/array_serializer');
 import fs = require('fs');
 
-function train_mnist() {
+function train_mnist(load_weight: boolean = false) {
+  $M.initcl();
   var layers = [
     { name: "d_train", type: "mnist_data", params: { "data": "mnist/data_train.bin", "label": "mnist/label_train.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
     { name: "d_test", type: "mnist_data", params: { "data": "mnist/data_test.bin", "label": "mnist/label_test.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
@@ -18,10 +19,11 @@ function train_mnist() {
 
   var net = new Network(layers);
   net.init(() => {
+    net.to_cl();
     var opt = new OptimizerSGD(net, 1e-3);
     var batch_size = 100;
     
-    if (false) {
+    if (load_weight) {
       console.log('loading net');
       var buf = new Uint8Array(fs.readFileSync('/tmp/sukiyaki_weight.bin').buffer);
       ArraySerializer.load(buf, net);
@@ -80,3 +82,4 @@ function train_mnist() {
 }
 
 export = train_mnist;
+train_mnist();

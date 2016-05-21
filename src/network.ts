@@ -7,6 +7,7 @@ import ForwardConfiguration = require('./forward_configuration');
 
 class Network {
   phase: string;
+  devicetype: string;//cpu or cl
   layers: { name: string, type: string, params: any, inputs: string[], outputs: string[], phase?: string[] }[];
   layer_instances: { [index: string]: Layer };
   blobs_forward: { [index: string]: $M.Matrix };
@@ -14,6 +15,7 @@ class Network {
 
   constructor(layers: { name: string, type: string, params: any, inputs: string[], outputs: string[], phase?: string[] }[]) {
     this.phase = 'test';
+    this.devicetype = 'cpu';
     this.layers = layers;
     this.layer_instances = {};
     //construct layers
@@ -39,6 +41,32 @@ class Network {
 
     init_next_layer();
   }
+  
+  to_cpu(): void {
+    if (this.devicetype == 'cpu') {
+      return;
+    }
+    for (var key in this.layer_instances) {
+      if (this.layer_instances.hasOwnProperty(key)) {
+        var inst = this.layer_instances[key];
+        inst.to_cpu();
+      }
+    }
+    this.devicetype = 'cpu';
+  }
+  
+  to_cl(): void {
+    if (this.devicetype == 'cl') {
+      return;
+    }
+    for (var key in this.layer_instances) {
+      if (this.layer_instances.hasOwnProperty(key)) {
+        var inst = this.layer_instances[key];
+        inst.to_cl();
+      }
+    }
+    this.devicetype = 'cl';
+  }
 
   forward(input_vars: { [index: string]: $M.Matrix }, callback: () => void): void {
     this.blobs_forward = {};
@@ -53,6 +81,7 @@ class Network {
     var target_layers = this.layers.filter((item) => (item.phase == null) || (item.phase.indexOf(this.phase) >= 0));
     var forward_config = new ForwardConfiguration();
     forward_config.phase = this.phase;
+    forward_config.devicetype = this.devicetype;
     var forward_next = () => {//arrow function preserves "this"
       var layer_prop = target_layers[layer_index];
       var layer_instance = this.layer_instances[layer_prop.name];
@@ -101,6 +130,7 @@ class Network {
 
     var forward_config = new ForwardConfiguration();
     forward_config.phase = this.phase;
+    forward_config.devicetype = this.devicetype;
 
     var backward_next = () => {
       var layer_prop = target_layers[layer_index];
@@ -120,7 +150,13 @@ class Network {
         if (this.blobs_backward[var_name] == null) {
           //give matrix of 1 with same shape of forward variable
           var top_forward = this.blobs_forward[var_name];
-          this.blobs_backward[var_name] = $M.ones($M.size(top_forward));
+          var ones: $M.Matrix;
+          if (this.devicetype == 'cl') {
+            ones = $M.ones($M.size(top_forward), 'gpuArray');
+          } else {
+            ones = $M.ones($M.size(top_forward));
+          }
+          this.blobs_backward[var_name] = ones; 
         }
         top_deltas.push(this.blobs_backward[var_name]);
       }

@@ -21,7 +21,11 @@ class OptimizerSGD {
         }
         for (var index = 0; index < layer_instance.train_params.length; index++) {
           var delta_param_name = layer_instance.delta_params[index];
-          layer_instance[delta_param_name] = $M.zeros($M.size(layer_instance[delta_param_name]));
+          if (this.net.devicetype == 'cl') {
+            layer_instance[delta_param_name] = $M.zeros($M.size(layer_instance[delta_param_name]), 'gpuArray');
+          } else {
+            layer_instance[delta_param_name] = $M.zeros($M.size(layer_instance[delta_param_name]));
+          }
         }
       }
     }

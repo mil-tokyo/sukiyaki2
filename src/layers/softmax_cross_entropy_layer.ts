@@ -28,6 +28,9 @@ class SoftmaxCrossEntropyLayer extends Layer {
       var label = gtlabel.get(sample) + 1;
       loss = $M.minus(loss, data_softmax_log.get(label, sample) / batch_size);
     }
+    if (config.devicetype == 'cl') {
+      loss = $M.gpuArray(loss);
+    }
     this.data_softmax = data_softmax;
 
     setImmediate(function() {
