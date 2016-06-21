@@ -18,7 +18,7 @@ class ReluLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     //batch: [dim, sample]
     var output = $M.max(data, 0);
-    setImmediate(function() {
+    setImmediate(function () {
       callback([output]);
     });
   }
@@ -26,12 +26,15 @@ class ReluLayer extends Layer {
   backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
-    
-    var coef = $M.zeros($M.size(data));
-    coef.set($M.gt(data, 0), 1.0);
-    var bottom_delta = $M.times(top_delta, coef);
-    
-    setImmediate(function(){
+
+    let bottom_delta = $M.autodestruct(() => {
+      var coef = $M.zeros($M.size(data));
+      coef.set($M.gt(data, 0), 1.0);
+      let bottom_delta = $M.times(top_delta, coef);
+      return bottom_delta;
+    });
+
+    setImmediate(function () {
       callback([bottom_delta]);
     });
   }

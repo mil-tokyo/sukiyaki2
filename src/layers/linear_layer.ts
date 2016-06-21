@@ -16,8 +16,8 @@ class LinearLayer extends Layer {
     var out_size = params.out_size;
     this.weight = $M.times($M.randn(out_size, in_size), 1.0 / Math.sqrt(in_size));
     this.bias = $M.zeros(out_size, 1);
-    this.delta_weight = $M.zeros(out_size, in_size);
-    this.delta_bias = $M.zeros(out_size, 1);
+    this.delta_weight = null;//$M.zeros(out_size, in_size);
+    this.delta_bias = null;//$M.zeros(out_size, 1);
     this.train_params = ['weight', 'bias'];
     this.delta_params = ['delta_weight', 'delta_bias'];
   }
@@ -30,11 +30,14 @@ class LinearLayer extends Layer {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     //batch: [dim, sample]
-    var output = $M.mtimes(this.weight, data);
-    output = $M.plus(output, $M.repmat(this.bias, 1, $M.sizejsa(data)[1]));
+    var top = $M.autodestruct(() => {
+      var output = $M.mtimes(this.weight, data);
+      var output_with_bias = $M.plus(output, $M.repmat(this.bias, 1, $M.sizejsa(data)[1]));
+      return output_with_bias;
+    });
 
-    setImmediate(function() {
-      callback([output]);
+    setImmediate(function () {
+      callback([top]);
     });
   }
 
@@ -42,9 +45,9 @@ class LinearLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 
-    var bottom_delta = $M.mtimes($M.t(this.weight), top_delta);
+    var bottom_delta = $M.autodestruct(() => $M.mtimes($M.t(this.weight), top_delta));
 
-    setImmediate(function() {
+    setImmediate(function () {
       callback([bottom_delta]);
     });
   }
@@ -53,13 +56,20 @@ class LinearLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 
-    var delta_weight = $M.mtimes(top_delta, $M.t(data));
-    var delta_bias = $M.sum(top_delta, 2);
+    var new_delta_weight = $M.autodestruct(() => {
+      var delta_weight = $M.mtimes(top_delta, $M.t(data));
+      return $M.plus(this.delta_weight, delta_weight);
+    });
+    this.delta_weight.destruct();
+    this.delta_weight = new_delta_weight;
+    var new_delta_bias = $M.autodestruct(() => {
+      var delta_bias = $M.sum(top_delta, 2);
+      return $M.plus(this.delta_bias, delta_bias);
+    });
+    this.delta_bias.destruct();
+    this.delta_bias = new_delta_bias;
 
-    this.delta_weight = $M.plus(this.delta_weight, delta_weight);
-    this.delta_bias = $M.plus(this.delta_bias, delta_bias);
-
-    setImmediate(function() {
+    setImmediate(function () {
       callback();
     });
   }

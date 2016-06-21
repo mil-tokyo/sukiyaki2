@@ -56,7 +56,7 @@ function train_mnist(load_weight: boolean = false) {
         if (iter % 10 == 0) {
           console.log('loss: ' + net.blobs_forward['loss']);
         }
-        net.release();
+        opt.release();
         if (iter < max_iter) {
           iter++;
           if (iter % 100 == 0) {

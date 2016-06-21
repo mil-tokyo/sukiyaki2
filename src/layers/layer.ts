@@ -51,6 +51,7 @@ class Layer {
         if ($M.devicetype(m) == 'cpu') {
           var clm = $M.gpuArray(m);
           this[param_name] = clm;
+          m.destruct();
         }
       }
     }

@@ -17,9 +17,9 @@ class LossLayer extends Layer {
     //square loss
     var data: $M.Matrix = bottoms[0];
     var gt: $M.Matrix = bottoms[1];
-    var loss = $M.sum($M.sum($M.power($M.minus(data, gt), 2.0)));
+    var loss = $M.autodestruct(() => $M.sum($M.sum($M.power($M.minus(data, gt), 2.0))));
 
-    setImmediate(function() {
+    setImmediate(function () {
       callback([loss]);
     });
   }
@@ -29,10 +29,10 @@ class LossLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     var gt: $M.Matrix = bottoms[1];
     var top_delta: $M.Matrix = top_deltas[0];//scalar
-    
-    var bottom_delta = $M.times($M.minus(data, gt), top_delta);
-    
-    setImmediate(function(){
+
+    var bottom_delta = $M.autodestruct(() => $M.times($M.minus(data, gt), top_delta));
+
+    setImmediate(function () {
       callback([bottom_delta]);
     });
   }
