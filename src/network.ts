@@ -188,8 +188,24 @@ class Network {
   }
 
   release(): void {
-    this.blobs_forward = null;
-    this.blobs_backward = null;
+    if (this.blobs_forward != null) {
+      for (var key in this.blobs_forward) {
+        if (this.blobs_forward.hasOwnProperty(key)) {
+          var element = this.blobs_forward[key];
+          element.destruct();
+        }
+      }
+      this.blobs_forward = null;
+    }
+    if (this.blobs_backward != null) {
+      for (var key in this.blobs_backward) {
+        if (this.blobs_backward.hasOwnProperty(key)) {
+          var element = this.blobs_backward[key];
+          element.destruct();
+        }
+      }
+      this.blobs_backward = null;
+    }
 
     for (var key in this.layer_instances) {
       if (this.layer_instances.hasOwnProperty(key)) {

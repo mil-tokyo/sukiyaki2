@@ -46,6 +46,7 @@ function train_mnist(load_weight: boolean = false) {
     var next_iter = () => {
       if (iter % 10 == 0) {
         console.log("iteration " + iter);
+        console.log("buffers: " + $M.CL.buffers);
       }
       net.phase = "train";
       var range_bottom = iter * batch_size + 1;
@@ -55,6 +56,7 @@ function train_mnist(load_weight: boolean = false) {
         if (iter % 10 == 0) {
           console.log('loss: ' + net.blobs_forward['loss']);
         }
+        net.release();
         if (iter < max_iter) {
           iter++;
           if (iter % 100 == 0) {
@@ -77,6 +79,7 @@ function train_mnist(load_weight: boolean = false) {
       net.forward(input_vars, () => {
         var acc = net.blobs_forward['accuracy'].get();
         console.log('accuracy ' + acc);
+        net.release();
         console.log('saving net');
         var buf = ArraySerializer.dump(net);
         fs.writeFileSync('/tmp/sukiyaki_weight.bin', new Buffer(buf));
