@@ -7,16 +7,28 @@ import fs = require('fs');
 
 function train_mnist(load_weight: boolean = false) {
   $M.initcl();
+  // var layers = [
+  //   { name: "d_train", type: "mnist_data", params: { "data": "mnist/data_train.bin", "label": "mnist/label_train.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
+  //   { name: "d_test", type: "mnist_data", params: { "data": "mnist/data_test.bin", "label": "mnist/label_test.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
+  //   { name: "fc1", type: "linear", params: { in_size: 784, out_size: 100 }, inputs: ["data"], outputs: ["fc1"] },
+  //   { name: "relu1", type: "relu", params: {}, inputs: ["fc1"], outputs: ["relu1"] },
+  //   { name: "fc2", type: "linear", params: { in_size: 100, out_size: 10 }, inputs: ["relu1"], outputs: ["pred"] },
+  //   { name: "l", type: "softmax_cross_entropy", params: {}, inputs: ["pred", "label"], outputs: ["loss"] },
+  //   { name: "a", type: "accuracy", params: {}, inputs: ["pred", "label"], outputs: ["accuracy"], phase: ["test"] }
+  // ];
   var layers = [
     { name: "d_train", type: "mnist_data", params: { "data": "mnist/data_train.bin", "label": "mnist/label_train.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
     { name: "d_test", type: "mnist_data", params: { "data": "mnist/data_test.bin", "label": "mnist/label_test.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
-    { name: "fc1", type: "linear", params: { in_size: 784, out_size: 100 }, inputs: ["data"], outputs: ["fc1"] },
-    { name: "relu1", type: "relu", params: {}, inputs: ["fc1"], outputs: ["relu1"] },
-    { name: "fc2", type: "linear", params: { in_size: 100, out_size: 10 }, inputs: ["relu1"], outputs: ["pred"] },
+    { name: "br1", type: "branch", params: {n_output: 2}, inputs: ["data"], outputs: ["data1", "data2"]},
+    { name: "fc11", type: "linear", params: { in_size: 784, out_size: 100 }, inputs: ["data1"], outputs: ["fc11"] },
+    { name: "relu11", type: "relu", params: {}, inputs: ["fc11"], outputs: ["relu11"] },
+    { name: "fc12", type: "linear", params: { in_size: 100, out_size: 10 }, inputs: ["relu11"], outputs: ["pred1"] },
+    { name: "fc21", type: "linear", params: { in_size: 784, out_size: 10}, inputs: ["data2"], outputs: ["fc21"]},
+    { name: "relu21", type: "relu", params: {}, inputs: ["fc21"], outputs: ["pred2"]},
+    { name: "plus1", type: "plus", params: {n_input: 2}, inputs: ["pred1", "pred2"], outputs: ["pred"]},
     { name: "l", type: "softmax_cross_entropy", params: {}, inputs: ["pred", "label"], outputs: ["loss"] },
     { name: "a", type: "accuracy", params: {}, inputs: ["pred", "label"], outputs: ["accuracy"], phase: ["test"] }
   ];
-
   var net = new Network(layers);
   net.init(() => {
     net.to_cl();

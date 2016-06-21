@@ -1,5 +1,7 @@
 import Layer = require('./layer');
 import LinearLayer = require('./linear_layer');
+import BranchLayer = require('./branch_layer');
+import PlusLayer = require('./plus_layer');
 import DataLayer = require('./data_layer');
 import LossLayer = require('./loss_layer');
 import MnistDataLayer = require('./mnist_data_layer');
@@ -14,6 +16,10 @@ class LayerFactory {
         return new DataLayer(params);
       case 'linear':
         return new LinearLayer(params);
+      case 'branch':
+        return new BranchLayer(params);
+      case 'plus':
+        return new PlusLayer(params);
       case 'loss':
         return new LossLayer(params);
       case 'mnist_data':
