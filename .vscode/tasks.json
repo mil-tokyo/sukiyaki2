@@ -21,7 +21,7 @@
 	"showOutput": "silent",
 
 	// args is the HelloWorld program to compile.
-	"args": ["main.ts","--module","commonjs","--sourcemap"],
+	"args": ["main.ts","spec/sukiyaki.spec.ts","--module","commonjs","--declaration"],
 
 	// use the standard tsc problem matcher to find compile problems
 	// in the output.

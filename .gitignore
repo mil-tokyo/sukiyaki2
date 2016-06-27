@@ -3,3 +3,4 @@ typings
 .DS_Store
 *.js
 *.js.map
+*.d.ts

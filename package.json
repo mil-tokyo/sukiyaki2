@@ -1,0 +1,27 @@
+{
+  "name": "milsukiyaki2",
+  "version": "0.0.0",
+  "description": "Deep Learning Library for JavaScript",
+  "main": "index.js",
+  "dependencies": {
+    "milsushi2": "^0.0.0",
+    "definitely-typed-jasmine": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "jasmine-node spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mil-tokyo/sukiyaki2.git"
+  },
+  "keywords": [
+    "DeepLearning"
+  ],
+  "author": "Masatoshi Hidaka, Ken Miura, Tatsuya Harada",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mil-tokyo/sukiyaki2/issues"
+  },
+  "homepage": "https://github.com/mil-tokyo/sukiyaki2"
+}
