@@ -7,7 +7,10 @@
     "milsushi2": "^0.0.0",
     "definitely-typed-jasmine": "^1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "browserify-shim": "^3.8.12"
+  },
   "scripts": {
     "test": "jasmine-node spec"
   },
@@ -23,5 +26,11 @@
   "bugs": {
     "url": "https://github.com/mil-tokyo/sukiyaki2/issues"
   },
-  "homepage": "https://github.com/mil-tokyo/sukiyaki2"
+  "homepage": "https://github.com/mil-tokyo/sukiyaki2",
+  "browserify": {
+    "transform": ["browserify-shim"]
+  },
+  "browserify-shim": {
+    "milsushi2": "global:milsushi2"
+  }
 }

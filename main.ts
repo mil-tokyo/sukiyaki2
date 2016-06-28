@@ -1,8 +1,9 @@
 /// <reference path="./node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
-import Network = require('./src/network');
-import OptimizerSGD = require('./src/optimizers/optimizer_sgd');
-import ArraySerializer = require('./src/array_serializer');
+import Sukiyaki = require('./index');
+var Network = Sukiyaki.Network;
+var OptimizerSGD = Sukiyaki.Optimizers.OptimizerSGD;
+var ArraySerializer = Sukiyaki.ArraySerializer;
 import fs = require('fs');
 
 function train_mnist(load_weight: boolean = false) {
