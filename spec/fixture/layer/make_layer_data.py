@@ -39,7 +39,10 @@ def save_blobs(name, blobs):
     np.save(DST_DIR + "train_params_bias.npy", blobs["train_params"]["bias"])
     np.save(DST_DIR + "forward_bottoms_0.npy", blobs["forward"]["bottoms"][0])
     np.save(DST_DIR + "forward_tops_0.npy", blobs["forward"]["tops"][0])
-    
+    np.save(DST_DIR + "backward_top_deltas_0.npy", blobs["backward"]["top_deltas"][0])
+    np.save(DST_DIR + "backward_bottom_deltas_0.npy", blobs["backward"]["bottom_deltas"][0])
+    np.save(DST_DIR + "delta_params_weight.npy", blobs["delta_params"]["delta_weight"])
+    np.save(DST_DIR + "delta_params_bias.npy", blobs["delta_params"]["delta_bias"])
 
 if __name__ == '__main__':
     blobs = linear(2, 3, (4,))
