@@ -4,8 +4,9 @@
   "description": "Deep Learning Library for JavaScript",
   "main": "index.js",
   "dependencies": {
-    "milsushi2": "^0.0.0",
-    "definitely-typed-jasmine": "^1.0.0"
+    "definitely-typed-jasmine": "^1.0.0",
+    "jpeg-turbo": "^0.4.0",
+    "milsushi2": "^0.0.0"
   },
   "devDependencies": {
     "browserify": "^13.0.1",
@@ -28,7 +29,9 @@
   },
   "homepage": "https://github.com/mil-tokyo/sukiyaki2",
   "browserify": {
-    "transform": ["browserify-shim"]
+    "transform": [
+      "browserify-shim"
+    ]
   },
   "browserify-shim": {
     "milsushi2": "global:milsushi2"
