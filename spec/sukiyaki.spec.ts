@@ -12,7 +12,7 @@ if (cl_enabled) {
   $M.initcl();
 }
 
-var layer_test_cases = 'linear_1d linear_3d'.split(' ');
+var layer_test_cases = 'linear_1d linear_3d relu'.split(' ');
 
 function test_layer_case(case_name: string, done: any, cl: boolean) {
   var case_data = load_layer_case(case_name, cl);
@@ -29,10 +29,12 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
     }
   }
   //zero clear gradient parameters (delta_weight, delta_bias)
-  for (var index = 0; index < layer.train_params.length; index++) {
-    var train_param_name = layer.train_params[index];
-    var delta_param_name = layer.delta_params[index];
-    layer[delta_param_name] = $M.zeros($M.size(layer[train_param_name]));
+  if (layer.train_params) {
+    for (var index = 0; index < layer.train_params.length; index++) {
+      var train_param_name = layer.train_params[index];
+      var delta_param_name = layer.delta_params[index];
+      layer[delta_param_name] = $M.zeros($M.size(layer[train_param_name]));
+    }
   }
 
   layer.forward(case_data.blobs.forward.bottoms, null, (actual_tops) => {

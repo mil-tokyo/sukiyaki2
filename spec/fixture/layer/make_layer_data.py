@@ -15,9 +15,20 @@ import chainer.functions as F
 
 DST_DIR = os.path.abspath(os.path.dirname(__file__)) + '/'
 
+# utilities
 def random_float32(shape):
     # chainer requires float32 array for parameters
-    return np.random.random(shape).astype(np.float32)
+    return np.random.standard_normal(shape).astype(np.float32)
+
+def reverse_order(*mats):
+    # reverse order of axis (for supporting c-order and f-order change)
+    rets = []
+    for x in mats:
+        perm_from = list(range(x.ndim))
+        perm_to = list(range(x.ndim))
+        perm_to.reverse()
+        rets.append(np.moveaxis(x, perm_from, perm_to))
+    return rets
 
 def linear(n, out_ch, in_shape):
     from chainer.functions.connection.linear import LinearFunction
@@ -31,13 +42,7 @@ def linear(n, out_ch, in_shape):
     gx, gW, gb = f.backward((x, W, b), (gy, ))
 
     # flattening in sukiyaki uses fortran-order, in contrast to chainer c-order
-    perm_from = list(range(x.ndim))
-    perm_to = list(range(x.ndim))
-    perm_to.reverse()
-    x = np.moveaxis(x, perm_from, perm_to)#(in_shape, n)
-    y = np.moveaxis(y, 0, -1)#(out_shape, n)
-    gy = np.moveaxis(gy, 0, -1)#(out_shape, n)
-    gx = np.moveaxis(gx, perm_from, perm_to)#(in_shape, n)
+    x, y, gy, gx = reverse_order(x, y, gy, gx)#(n, in_shape) to (reversed(in_shape), n)
 
     in_shape_forder = list(in_shape)
     in_shape_forder.reverse()
@@ -46,6 +51,23 @@ def linear(n, out_ch, in_shape):
     return {"layer_params":layer_params,
         "train_params":{"weight":W, "bias":b},
         "delta_params":{"delta_weight":gW, "delta_bias": gb},
+        "forward":{"bottoms":[x], "tops":[y]},
+        "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
+
+def relu(n, in_shape):
+    from chainer.functions.activation.relu import ReLU
+    f = ReLU()
+    x = random_float32((n, ) + in_shape)
+    gy = random_float32((n, ) + in_shape)
+
+    y, = f.forward((x, ))
+    gx, = f.backward((x, ), (gy, ))
+
+    x, y, gy, gx = reverse_order(x, y, gy, gx)
+
+    layer_params = {"type":"relu", "params": {}}
+
+    return {"layer_params": layer_params,
         "forward":{"bottoms":[x], "tops":[y]},
         "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
@@ -83,3 +105,4 @@ def save_case(case_name, case_obj):
 if __name__ == '__main__':
     save_case("linear_1d", linear(2, 3, (4,)))
     save_case("linear_3d", linear(2, 3, (4, 2, 2)))
+    save_case("relu", relu(2, (3, 4, 5)))

@@ -1,0 +1,1 @@
+{"blobs": {"delta_params": [], "backward": {"bottoms": 1, "bottom_deltas": 1, "top_deltas": 1}, "forward": {"bottoms": 1, "tops": 1}, "train_params": []}, "layer_params": {"params": {}, "type": "relu"}}
