@@ -42,7 +42,7 @@ def linear(n, out_ch, in_shape):
     gx, gW, gb = f.backward((x, W, b), (gy, ))
 
     # flattening in sukiyaki uses fortran-order, in contrast to chainer c-order
-    x, y, gy, gx = reverse_order(x, y, gy, gx)#(n, in_shape) to (reversed(in_shape), n)
+    x, y, gy, gx, W, b, gW, gb = reverse_order(x, y, gy, gx, W, b, gW, gb)#(n, in_shape) to (reversed(in_shape), n)
 
     in_shape_forder = list(in_shape)
     in_shape_forder.reverse()

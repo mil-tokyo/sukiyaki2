@@ -1,1 +1,1 @@
-{"layer_params": {"type": "linear", "params": {"in_shape": [4], "out_size": 3}}, "blobs": {"delta_params": ["delta_weight", "delta_bias"], "train_params": ["bias", "weight"], "backward": {"top_deltas": 1, "bottoms": 1, "bottom_deltas": 1}, "forward": {"bottoms": 1, "tops": 1}}}
+{"blobs": {"backward": {"bottoms": 1, "top_deltas": 1, "bottom_deltas": 1}, "forward": {"tops": 1, "bottoms": 1}, "delta_params": ["delta_bias", "delta_weight"], "train_params": ["bias", "weight"]}, "layer_params": {"type": "linear", "params": {"out_size": 3, "in_shape": [4]}}}

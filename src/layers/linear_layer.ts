@@ -23,9 +23,9 @@ class LinearLayer extends Layer {
     }
     this.in_size = this.in_shape.reduce((prev, cur) => prev * cur, 1);
     this.out_size = params.out_size;
-    this.weight = $M.times($M.randn(this.in_size, this.in_size), 1.0 / Math.sqrt(this.in_size));
-    this.bias = $M.zeros(this.in_size, 1);
-    this.delta_weight = null;//$M.zeros(out_size, in_size);
+    this.weight = $M.times($M.randn(this.in_size, this.out_size), 1.0 / Math.sqrt(this.in_size));
+    this.bias = $M.zeros(this.out_size, 1);
+    this.delta_weight = null;//$M.zeros(in_size, out_size);
     this.delta_bias = null;//$M.zeros(out_size, 1);
     this.train_params = ['weight', 'bias'];
     this.delta_params = ['delta_weight', 'delta_bias'];
@@ -43,7 +43,7 @@ class LinearLayer extends Layer {
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
     //batch: [dim, sample]
     var top = $M.autodestruct(() => {
-      var output = $M.mtimes(this.weight, data);
+      var output = $M.mtimes($M.t(this.weight), data);
       var output_with_bias = $M.plus(output, $M.repmat(this.bias, 1, $M.sizejsa(data)[1]));
       return output_with_bias;
     });
@@ -60,7 +60,7 @@ class LinearLayer extends Layer {
     var data_orig_shape = $M.size(data);
 
     var bottom_delta = $M.autodestruct(() => {
-      var result = $M.mtimes($M.t(this.weight), top_delta);
+      var result = $M.mtimes(this.weight, top_delta);
       result.reshape_inplace(data_orig_shape);
       return result;
     });
@@ -78,7 +78,7 @@ class LinearLayer extends Layer {
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
 
     var new_delta_weight = $M.autodestruct(() => {
-      var delta_weight = $M.mtimes(top_delta, $M.t(data));
+      var delta_weight = $M.mtimes(data, $M.t(top_delta));
       return $M.plus(this.delta_weight, delta_weight);
     });
     this.delta_weight.destruct();
