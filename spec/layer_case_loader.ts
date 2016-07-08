@@ -3,15 +3,19 @@
 import fs = require('fs');
 import $M = require('milsushi2');
 
-function load_npy(basedir: string, keys: any[]) {
+function load_npy(basedir: string, keys: any[], cl: boolean) {
   // load_npy('foo', ['bar', 1]) => foo/bar.1.npy
   var path = basedir + '/';
   keys.forEach((key) => { path += key + '.'; });
   path += 'npy';
-  return $M.npyread(fs.readFileSync(path));
+  var m = $M.npyread(fs.readFileSync(path));
+  if (cl) {
+    m = $M.gpuArray(m);
+  }
+  return m;
 }
 
-function load_layer_case(case_name: string): any {
+function load_layer_case(case_name: string, cl: boolean): any {
   var case_dir = 'spec/fixture/layer/' + case_name;
   var case_metadata = JSON.parse(fs.readFileSync(case_dir + '/case.json', 'utf8'));
   var layer_params = case_metadata.layer_params;//for layer_factory
@@ -20,7 +24,7 @@ function load_layer_case(case_name: string): any {
     blobs[param_type] = {};
     if (case_metadata.blobs[param_type]) {
       case_metadata.blobs[param_type].forEach((param_name) => {
-        blobs[param_type][param_name] = load_npy(case_dir, [param_type, param_name]);
+        blobs[param_type][param_name] = load_npy(case_dir, [param_type, param_name], cl);
       });
     }
   });
@@ -34,7 +38,7 @@ function load_layer_case(case_name: string): any {
         var param_count: number = type_vars[param_name];
         var npy_list = [];
         for (var j = 0; j < param_count; j++) {
-          npy_list.push(load_npy(case_dir, [param_type, param_name, j]));
+          npy_list.push(load_npy(case_dir, [param_type, param_name, j], cl));
         }
         blobs[param_type][param_name] = npy_list;
       }

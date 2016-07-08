@@ -4,9 +4,22 @@ import Sukiyaki = require('../index');
 import fs = require('fs');
 import load_layer_case = require('./layer_case_loader');
 
-function test_layer_case(case_name, done) {
-  var case_data = load_layer_case(case_name);
+declare var process;
+var cl_enabled = Boolean(Number(process.env['TEST_CL']));
+console.log('OpenCL ' + cl_enabled);
+var MatrixCL = null;
+if (cl_enabled) {
+  $M.initcl();
+}
+
+var layer_test_cases = 'linear_1d linear_3d'.split(' ');
+
+function test_layer_case(case_name: string, done: any, cl: boolean) {
+  var case_data = load_layer_case(case_name, cl);
   var layer = Sukiyaki.LayerFactory.create(case_data.layer_params.type, case_data.layer_params.params);
+  if (cl) {
+    layer.to_cl();
+  }
 
   //fill parameters to train (weight, bias)
   for (var param_name in case_data.blobs.train_params) {
@@ -67,9 +80,17 @@ describe('Sukiyaki module', function () {
 });
 
 describe('layer test', function () {
-  'linear_1d linear_3d'.split(' ').forEach((case_name) => {
-    it('layer case ' + case_name, function (done) {
-      test_layer_case(case_name, done);
+  layer_test_cases.forEach((case_name) => {
+    it('layer case cpu ' + case_name, function (done) {
+      test_layer_case(case_name, done, false);
     });
   });
+
+  if (cl_enabled) {
+    layer_test_cases.forEach((case_name) => {
+      it('layer case cl ' + case_name, function (done) {
+        test_layer_case(case_name, done, true);
+      });
+    });
+  }
 });
