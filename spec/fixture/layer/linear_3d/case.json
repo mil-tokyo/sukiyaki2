@@ -1,0 +1,1 @@
+{"blobs": {"backward": {"bottoms": 1, "bottom_deltas": 1, "top_deltas": 1}, "train_params": ["bias", "weight"], "delta_params": ["delta_bias", "delta_weight"], "forward": {"bottoms": 1, "tops": 1}}, "layer_params": {"type": "linear", "params": {"in_shape": [2, 2, 4], "out_size": 3}}}

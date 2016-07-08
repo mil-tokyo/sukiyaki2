@@ -39,7 +39,7 @@ class LinearLayer extends Layer {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     var data_orig_shape = $M.size(data);
-    // convert to 2d with keeping batch length
+    // convert to 2d with keeping batch length (flatten in fortran-order)
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
     //batch: [dim, sample]
     var top = $M.autodestruct(() => {

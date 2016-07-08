@@ -30,12 +30,18 @@ def linear(n, out_ch, in_shape):
     gy = random_float32(y.shape)
     gx, gW, gb = f.backward((x, W, b), (gy, ))
 
-    x = np.moveaxis(x, 0, -1)#(in_shape, n)
+    # flattening in sukiyaki uses fortran-order, in contrast to chainer c-order
+    perm_from = list(range(x.ndim))
+    perm_to = list(range(x.ndim))
+    perm_to.reverse()
+    x = np.moveaxis(x, perm_from, perm_to)#(in_shape, n)
     y = np.moveaxis(y, 0, -1)#(out_shape, n)
     gy = np.moveaxis(gy, 0, -1)#(out_shape, n)
-    gx = np.moveaxis(gx, 0, -1)#(in_shape, n)
+    gx = np.moveaxis(gx, perm_from, perm_to)#(in_shape, n)
 
-    layer_params = {"type":"linear", "params": {"in_shape": in_shape, "out_size": out_ch}}
+    in_shape_forder = list(in_shape)
+    in_shape_forder.reverse()
+    layer_params = {"type":"linear", "params": {"in_shape": in_shape_forder, "out_size": out_ch}}
 
     return {"layer_params":layer_params,
         "train_params":{"weight":W, "bias":b},
@@ -75,5 +81,5 @@ def save_case(case_name, case_obj):
         json.dump(case_metadata, f)
 
 if __name__ == '__main__':
-    case_obj = linear(2, 3, (4,))
-    save_case("linear_1d", case_obj)
+    save_case("linear_1d", linear(2, 3, (4,)))
+    save_case("linear_3d", linear(2, 3, (4, 2, 2)))

@@ -67,7 +67,7 @@ describe('Sukiyaki module', function () {
 });
 
 describe('layer test', function () {
-  ['linear_1d'].forEach((case_name) => {
+  'linear_1d linear_3d'.split(' ').forEach((case_name) => {
     it('layer case ' + case_name, function (done) {
       test_layer_case(case_name, done);
     });
