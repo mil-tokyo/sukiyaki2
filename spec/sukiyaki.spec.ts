@@ -26,7 +26,7 @@ function test_layer_case(case_name, done) {
     // test forward result
     for (var forward_top_i = 0; forward_top_i < case_data.blobs.forward.tops.length; forward_top_i++) {
       var expected_top = case_data.blobs.forward.tops[forward_top_i];
-      expect($M.allclose(actual_tops[forward_top_i], expected_top));
+      expect($M.allclose(actual_tops[forward_top_i], expected_top)).toBeTruthy();
     }
 
     if (case_data.blobs.backward.bottom_deltas.length == 0) {
