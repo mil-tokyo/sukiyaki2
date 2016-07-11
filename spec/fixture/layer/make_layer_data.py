@@ -71,6 +71,35 @@ def relu(n, in_shape):
         "forward":{"bottoms":[x], "tops":[y]},
         "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
+def convolution_2d(n, in_size, out_size, in_shape, ksize, stride, pad):
+    from chainer.functions.connection.convolution_2d import Convolution2DFunction
+    f = Convolution2DFunction(stride = stride, pad = pad)
+    x = random_float32((n, in_size) + in_shape)
+    W = random_float32((out_size, in_size) + ksize)
+    b = random_float32((out_size,))
+    y, = f.forward((x, W, b))
+    gy = random_float32(y.shape)
+    gx, gW, gb = f.backward((x, W, b), (gy,))
+
+    # change order from (n, c, h, w) to (h, w, c, n), (out,in,h,w) to (h, w, in, out)
+    nchw = (0, 1, 2, 3)
+    hwcn = (3, 2, 0, 1)
+    x = np.moveaxis(x, nchw, hwcn)
+    W = np.moveaxis(W, nchw, hwcn)
+    y = np.moveaxis(y, nchw, hwcn)
+    gy = np.moveaxis(gy, nchw, hwcn)
+    gx = np.moveaxis(gx, nchw, hwcn)
+    gW = np.moveaxis(gW, nchw, hwcn)
+
+    layer_params = {"type":"convolution_2d", "params": {"in_size":in_size, "out_size":out_size, "ksize":ksize, "stride":stride, "pad":pad}}
+
+    return {"layer_params":layer_params,
+        "train_params":{"weight":W, "bias":b},
+        "delta_params":{"delta_weight":gW, "delta_bias": gb},
+        "forward":{"bottoms":[x], "tops":[y]},
+        "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
+
+
 def save_case(case_name, case_obj):
     #saves test case
     case_dir = DST_DIR + case_name
@@ -106,3 +135,5 @@ if __name__ == '__main__':
     save_case("linear_1d", linear(2, 3, (4,)))
     save_case("linear_3d", linear(2, 3, (4, 2, 2)))
     save_case("relu", relu(2, (3, 4, 5)))
+    save_case("convolution_2d", convolution_2d(2, 3, 4, (5,5), (3,3),(1,1),(0,0)))
+    save_case("convolution_2d_stride_pad", convolution_2d(2, 3, 4, (6, 7), (3, 5),(2, 3),(1, 2)))

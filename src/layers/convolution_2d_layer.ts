@@ -38,18 +38,22 @@ class Convolution2DLayer extends Layer {
 
   forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];// (h, w, c, n)
+    console.log('data shape ' +data._size);
     var n = $M.size(data, 4);
+    this.weight.reshape_inplace(this.ksize[0] * this.ksize[1] * this.in_size, this.out_size);
     var top = $M.autodestruct(() => {
       var output: $M.Matrix = null;
       for (var batch = 1; batch <= n; batch++) {
-        var img = data.get($M.colon(), $M.colon(), $M.colon(), n);
+        var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
         var col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
         var col_shape = $M.sizejsa(col);
         var out_h = col_shape[0];
         var out_w = col_shape[1];
         col.reshape_inplace(out_h * out_w, -1);
         var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
+        console.log('output_b ', output_b);
         var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
+        console.log('output_b_with_bias ', output_b_with_bias);
         if (batch == 1) {
           output = $M.zeros(out_h * out_w, this.out_size, n);
         }
@@ -58,7 +62,9 @@ class Convolution2DLayer extends Layer {
       output.reshape_inplace(out_h, out_w, this.out_size, n);
       return output;
     });
+    this.weight.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
 
+    console.log('top ', top.get($M.colon(), $M.colon()));
     setImmediate(function () {
       callback([top]);
     });

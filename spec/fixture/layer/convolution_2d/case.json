@@ -1,0 +1,1 @@
+{"layer_params": {"params": {"stride": [1, 1], "pad": [0, 0], "in_size": 3, "out_size": 4, "ksize": [3, 3]}, "type": "convolution_2d"}, "blobs": {"backward": {"top_deltas": 1, "bottoms": 1, "bottom_deltas": 1}, "delta_params": ["delta_bias", "delta_weight"], "forward": {"bottoms": 1, "tops": 1}, "train_params": ["weight", "bias"]}}
