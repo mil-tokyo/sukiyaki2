@@ -1,4 +1,3 @@
-/// <reference path="../../node_modules/milsushi2/index.d.ts"/>
 import $M = require('milsushi2');
 import Layer = require('./layer');
 import ForwardConfiguration = require('../forward_configuration');

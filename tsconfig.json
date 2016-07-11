@@ -1,7 +1,16 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "module": "commonjs",
-        "sourceMap": true
-    }
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "sourceMap": true,
+    "declaration": true,
+    "allowUnreachableCode": true
+  },
+  "files": [
+    "main.ts",
+    "spec/sukiyaki.spec.ts",
+    "typings/index.d.ts"
+  ],
+  "exclude": [
+  ]
 }

@@ -1,4 +1,3 @@
-/// <reference path="./jpeg-turbo.d.ts" />
 import $M = require('milsushi2');
 import jpg = require('jpeg-turbo');
 import fs = require('fs');

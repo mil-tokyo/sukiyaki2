@@ -1,8 +1,7 @@
 {
-  "version": false,
-  "dependencies": {
-  },
-  "ambientDependencies": {
-    "node": "registry:dt/node#4.0.0+20160505172921"
+  "name": "milsukiyaki2",
+  "dependencies": {},
+  "globalDependencies": {
+    "node": "registry:dt/node#6.0.0+20160709114037"
   }
 }
