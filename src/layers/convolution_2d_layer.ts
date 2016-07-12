@@ -38,7 +38,6 @@ class Convolution2DLayer extends Layer {
 
   forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];// (h, w, c, n)
-    console.log('data shape ' + data._size);
     var n = $M.size(data, 4);
     this.weight.reshape_inplace(this.ksize[0] * this.ksize[1] * this.in_size, this.out_size);
     var top = $M.autodestruct(() => {
@@ -51,9 +50,7 @@ class Convolution2DLayer extends Layer {
         var out_w = col_shape[1];
         col.reshape_inplace(out_h * out_w, -1);
         var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
-        console.log('output_b ', output_b);
         var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
-        console.log('output_b_with_bias ', output_b_with_bias);
         if (batch == 1) {
           output = $M.zeros(out_h * out_w, this.out_size, n);
         }
@@ -64,21 +61,39 @@ class Convolution2DLayer extends Layer {
     });
     this.weight.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
 
-    console.log('top ', top.get($M.colon(), $M.colon()));
     setImmediate(function () {
       callback([top]);
     });
   }
 
   backward(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: (bottom_deltas: $M.Matrix[]) => void): void {
-    //TODO
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
     var data_orig_shape = $M.size(data);
 
     var bottom_delta = $M.autodestruct(() => {
-      var result = $M.zeros($M.size(data));
-      return result;
+      var output: $M.Matrix;
+      var n = $M.size(data, 4);
+      var weight_origsize_jsa = $M.sizejsa(this.weight);
+      this.weight.reshape_inplace(-1, this.out_size);
+      var weight_t = $M.t(this.weight);
+      this.weight.reshape_inplace(weight_origsize_jsa);
+      for (var batch = 1; batch <= n; batch++) {
+        var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
+        var top_delta_shape = $M.sizejsa(top_delta_batch);
+        var out_h = top_delta_shape[0];
+        var out_w = top_delta_shape[1];
+        top_delta_batch.reshape_inplace(out_h * out_w, -1);
+
+        var delta_col_batch = $M.mtimes(top_delta_batch, weight_t);
+        if (batch == 1) {
+          output = $M.zeros($M.size(data));
+        }
+        delta_col_batch.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, 1);
+        var bottom_delta_col = im2col.col2im_cpu(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
+        output.set($M.colon(), $M.colon(), $M.colon(), batch, bottom_delta_col);
+      }
+      return output;
     });
 
     setImmediate(function () {

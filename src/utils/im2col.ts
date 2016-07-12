@@ -25,23 +25,18 @@ export function im2col_cpu(img: $M.Matrix, ksize: number[], stride: number[], pa
   var col = $M.zeros(out_h, out_w, kh, kw, c, n);
 
   var padded_img = $M.zeros(h + ph * 2 + sy - 1, w + pw * 2 + sx - 1, c, n);
-  console.log('padded_img shape first ' + padded_img._size);
   padded_img.set($M.colon(ph + 1, ph + h), $M.colon(pw + 1, pw + w), $M.colon(), $M.colon(), img);
-  console.log('padded_img ', padded_img.get($M.colon(), $M.colon()));
   for (var i = 1; i <= kw; i++) {
     var i_lim = i + sx * out_w - 1;
     for (var j = 1; j <= kh; j++) {
       var j_lim = j + sy * out_h - 1;
       var kern_view = padded_img.get($M.colon(j, sy, j_lim), $M.colon(i, sx, i_lim), $M.colon(), $M.colon());
-      console.log('padded_img shape ' + padded_img._size);
-      console.log('kern_view shape ' + kern_view._size);
-      console.log('out_h, out_w, c, n ' + [out_h, out_w, c, n]);
-        console.log('kern_view ', kern_view.get($M.colon(), $M.colon()));
       kern_view.reshape_inplace(out_h, out_w, 1, 1, c, n);
       col.set($M.colon(), $M.colon(), j, i, $M.colon(), $M.colon(), kern_view);
+      kern_view.destruct();
     }
   }
-  console.log('col', col.get($M.colon(), $M.colon()));
+  padded_img.destruct();
   return col;
 }
 
@@ -60,6 +55,21 @@ export function col2im_cpu(col: $M.Matrix, stride: number[], pad: number[], size
   var [sy, sx] = stride;
   var [ph, pw] = pad;
 
-  var img = $M.zeros(h + 2 * ph + sy - 1, w + 2 * pw + sx - 1, c, n);
-  return img.get($M.colon(), $M.colon(), $M.colon(ph + 1, ph + h), $M.colon(pw + 1, pw + w));
+  var padded_img = $M.zeros(h + 2 * ph + sy - 1, w + 2 * pw + sx - 1, c, n);
+  for (var i = 1; i <= kw; i++) {
+    var i_lim = i + sx * out_w - 1;
+    for (var j = 1; j <= kh; j++) {
+      var j_lim = j + sy * out_h - 1;
+      var col_view = col.get($M.colon(), $M.colon(), j, i, $M.colon(), $M.colon());
+      col_view.reshape_inplace(out_h, out_w, c, n);
+      var pad_view = padded_img.get($M.colon(j, sy, j_lim), $M.colon(i, sx, i_lim), $M.colon(), $M.colon());
+      padded_img.set($M.colon(j, sy, j_lim), $M.colon(i, sx, i_lim), $M.colon(), $M.colon(),
+        $M.plus(col_view, pad_view));
+      col_view.destruct();
+      pad_view.destruct();
+    }
+  }
+  var img = padded_img.get($M.colon(ph + 1, ph + h), $M.colon(pw + 1, pw + w), $M.colon(), $M.colon());
+  padded_img.destruct();
+  return img;
 }
