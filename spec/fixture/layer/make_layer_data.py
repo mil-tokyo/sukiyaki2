@@ -99,6 +99,25 @@ def convolution_2d(n, in_size, out_size, in_shape, ksize, stride, pad):
         "forward":{"bottoms":[x], "tops":[y]},
         "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
+def max_pooling_2d(n, in_size, in_shape, ksize, stride, pad):
+    from chainer.functions.pooling.max_pooling_2d import MaxPooling2D
+    f = MaxPooling2D(stride = stride, pad = pad)
+    x = random_float32((n, in_size) + in_shape)
+    y, = f.forward((x, ))
+    gy = random_float32(y.shape)
+    gx = f.backward((x, ), (gy, ))
+    nchw = (0, 1, 2, 3)
+    hwcn = (3, 2, 0, 1)
+    x = np.moveaxis(x, nchw, hwcn)
+    y = np.moveaxis(y, nchw, hwcn)
+    gy = np.moveaxis(gy, nchw, hwcn)
+    gx = np.moveaxis(gx, nchw, hwcn)
+
+    layer_params = {"type":"pooling_2d", "params": {"ksize":ksize, "stride":stride, "pad":pad, "type": "max"}}
+
+    return {"layer_params":layer_params,
+        "forward":{"bottoms":[x], "tops":[y]},
+        "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
 def save_case(case_name, case_obj):
     #saves test case
@@ -137,3 +156,6 @@ if __name__ == '__main__':
     save_case("relu", relu(2, (3, 4, 5)))
     save_case("convolution_2d", convolution_2d(2, 3, 4, (5,5), (3,3),(1,1),(0,0)))
     save_case("convolution_2d_stride_pad", convolution_2d(2, 3, 4, (6, 7), (3, 5),(2, 3),(1, 2)))
+    save_case("convolution_2d_1x1", convolution_2d(4, 2, 3, (7, 6), (1, 1),(0, 0),(0,0)))
+    save_case("max_pooling_2d", max_pooling_2d(2, (6, 7), (3, 5), (2, 3), (1, 2)))
+    

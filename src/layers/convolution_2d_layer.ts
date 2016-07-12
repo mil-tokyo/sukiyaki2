@@ -77,8 +77,7 @@ class Convolution2DLayer extends Layer {
     var data_orig_shape = $M.size(data);
 
     var bottom_delta = $M.autodestruct(() => {
-      var result = $M.mtimes($M.t(this.weight), top_delta);
-      result.reshape_inplace(data_orig_shape);
+      var result = $M.zeros($M.size(data));
       return result;
     });
 
@@ -91,23 +90,19 @@ class Convolution2DLayer extends Layer {
     //TODO
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
-    // convert to 2d with keeping batch length
-    var data_orig_shape = $M.size(data);
 
-    var new_delta_weight = $M.autodestruct(() => {
-      var delta_weight = $M.mtimes(top_delta, $M.t(data));
-      return $M.plus(this.delta_weight, delta_weight);
-    });
-    this.delta_weight.destruct();
-    this.delta_weight = new_delta_weight;
-    var new_delta_bias = $M.autodestruct(() => {
-      var delta_bias = $M.sum(top_delta, 2);
-      return $M.plus(this.delta_bias, delta_bias);
-    });
-    this.delta_bias.destruct();
-    this.delta_bias = new_delta_bias;
-
-    data.reshape_inplace(data_orig_shape);
+    // var new_delta_weight = $M.autodestruct(() => {
+    //   var delta_weight = $M.mtimes(top_delta, $M.t(data));
+    //   return $M.plus(this.delta_weight, delta_weight);
+    // });
+    // this.delta_weight.destruct();
+    // this.delta_weight = new_delta_weight;
+    // var new_delta_bias = $M.autodestruct(() => {
+    //   var delta_bias = $M.sum(top_delta, 2);
+    //   return $M.plus(this.delta_bias, delta_bias);
+    // });
+    // this.delta_bias.destruct();
+    // this.delta_bias = new_delta_bias;
 
     setImmediate(function () {
       callback();

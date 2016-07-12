@@ -45,8 +45,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
       console.log('shape etop ' + expected_top._size);
       expect($M.allclose(actual_tops[forward_top_i], expected_top, 1e-4)).toBeTruthy();
     }
-    done();
-    return;
+    
     if (case_data.blobs.backward.bottom_deltas.length == 0) {
       //no backward test
       done();
