@@ -38,7 +38,7 @@ class Convolution2DLayer extends Layer {
 
   forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     var data: $M.Matrix = bottoms[0];// (h, w, c, n)
-    console.log('data shape ' +data._size);
+    console.log('data shape ' + data._size);
     var n = $M.size(data, 4);
     this.weight.reshape_inplace(this.ksize[0] * this.ksize[1] * this.in_size, this.out_size);
     var top = $M.autodestruct(() => {
@@ -87,22 +87,49 @@ class Convolution2DLayer extends Layer {
   }
 
   calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: () => void): void {
-    //TODO
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 
-    // var new_delta_weight = $M.autodestruct(() => {
-    //   var delta_weight = $M.mtimes(top_delta, $M.t(data));
-    //   return $M.plus(this.delta_weight, delta_weight);
-    // });
-    // this.delta_weight.destruct();
-    // this.delta_weight = new_delta_weight;
-    // var new_delta_bias = $M.autodestruct(() => {
-    //   var delta_bias = $M.sum(top_delta, 2);
-    //   return $M.plus(this.delta_bias, delta_bias);
-    // });
-    // this.delta_bias.destruct();
-    // this.delta_bias = new_delta_bias;
+    var n = $M.size(data, 4);
+    var new_delta_weight: $M.Matrix = $M.autodestruct(() => {
+      var output: $M.Matrix = null;
+      for (var batch = 1; batch <= n; batch++) {
+        var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
+        var col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        var col_shape = $M.sizejsa(col);
+        var out_h = col_shape[0];
+        var out_w = col_shape[1];
+        col.reshape_inplace(out_h * out_w, -1);
+
+        var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
+        top_delta_batch.reshape_inplace(out_h * out_w, -1);
+
+        var delta_weight_b = $M.mtimes($M.t(col), top_delta_batch);
+        if (batch == 1) {
+          output = delta_weight_b;
+        } else {
+          var old_output = output;
+          output = $M.plus(old_output, delta_weight_b);
+          old_output.destruct();
+          delta_weight_b.destruct();
+        }
+      }
+      output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
+      return output;
+    });
+    var old_delta_weight = this.delta_weight;
+    this.delta_weight = $M.plus(old_delta_weight, new_delta_weight);
+    old_delta_weight.destruct();
+    new_delta_weight.destruct();
+
+    var new_delta_bias = $M.autodestruct(() => {
+      var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
+      td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
+      var delta_bias = $M.sum(td_permuted, 2);
+      return $M.plus(this.delta_bias, delta_bias);
+    });
+    this.delta_bias.destruct();
+    this.delta_bias = new_delta_bias;
 
     setImmediate(function () {
       callback();
