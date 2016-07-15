@@ -1,0 +1,1 @@
+{"layer_params": {"params": {"stride": [2, 3], "pad": [1, 2], "ksize": [3, 5], "type": "max"}, "type": "pooling_2d"}, "blobs": {"delta_params": [], "forward": {"tops": 1, "bottoms": 1}, "backward": {"bottom_deltas": 1, "top_deltas": 1, "bottoms": 1}, "train_params": []}}

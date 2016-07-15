@@ -3,11 +3,15 @@
 
 import $M = require('milsushi2');
 
-export function conv_outsize(size: number, k: number, s: number, p: number): number {
-  return Math.floor((size + p * 2 - k) / s) + 1
+export function conv_outsize(size: number, k: number, s: number, p: number, cover_all: boolean): number {
+  if(cover_all) {
+    return Math.floor((size + p * 2 - k + s - 1) / s) + 1
+  } else {
+    return Math.floor((size + p * 2 - k) / s) + 1
+  }
 }
 
-export function im2col_cpu(img: $M.Matrix, ksize: number[], stride: number[], pad: number[]): $M.Matrix {
+export function im2col_cpu(img: $M.Matrix, ksize: number[], stride: number[], pad: number[], pad_val: number = 0, cover_all: boolean =false): $M.Matrix {
   var h: number, w: number, c: number, n: number;
   var img_size = $M.sizejsa(img);
   h = img_size[0];
@@ -19,12 +23,15 @@ export function im2col_cpu(img: $M.Matrix, ksize: number[], stride: number[], pa
   var [sy, sx] = stride;
   var [ph, pw] = pad;
 
-  var out_h = conv_outsize(h, kh, sy, ph);
-  var out_w = conv_outsize(w, kw, sx, pw);
+  var out_h = conv_outsize(h, kh, sy, ph, cover_all);
+  var out_w = conv_outsize(w, kw, sx, pw, cover_all);
 
   var col = $M.zeros(out_h, out_w, kh, kw, c, n);
 
   var padded_img = $M.zeros(h + ph * 2 + sy - 1, w + pw * 2 + sx - 1, c, n);
+  if (pad_val) {
+    padded_img.set($M.colon(), pad_val);
+  }
   padded_img.set($M.colon(ph + 1, ph + h), $M.colon(pw + 1, pw + w), $M.colon(), $M.colon(), img);
   for (var i = 1; i <= kw; i++) {
     var i_lim = i + sx * out_w - 1;

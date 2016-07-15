@@ -9,6 +9,7 @@ import SoftmaxCrossEntropyLayer = require('./softmax_cross_entropy_layer');
 import ReluLayer = require('./relu_layer');
 import AccuracyLayer = require('./accuracy_layer');
 import Convolution2DLayer = require('./convolution_2d_layer');
+import Pooling2DLayer = require('./pooling_2d_layer');
 
 class LayerFactory {  
   static create(type: string, params: any): Layer {
@@ -33,6 +34,8 @@ class LayerFactory {
         return new AccuracyLayer(params);
       case 'convolution_2d':
         return new Convolution2DLayer(params);
+      case 'pooling_2d':
+        return new Pooling2DLayer(params);
       default:
         throw new Error('Unknown layer');
     }
