@@ -27,7 +27,6 @@ class Pooling2DLayer extends Layer {
         break;
       default:
         throw Error('Unknown pooling_type');
-        break;
     }
   }
 
@@ -62,8 +61,7 @@ class Pooling2DLayer extends Layer {
     var top = $M.autodestruct(() => {
       var col = im2col.im2col_cpu(data, this.ksize, this.stride, this.pad);
       col.reshape_inplace($M.size(col, 1), $M.size(col, 2), $M.size(col, 3) * $M.size(col, 4), $M.size(col, 5), $M.size(col, 6));
-      var sum = $M.sum(col, 3);//TODO: use mean function
-      var avg = $M.times(sum, 1 / (this.ksize[0] * this.ksize[1]));
+      var avg = $M.mean(col, 3);
       avg.reshape_inplace($M.size(col, 1), $M.size(col, 2), $M.size(col, 4), $M.size(col, 5));
       return avg;
     });
