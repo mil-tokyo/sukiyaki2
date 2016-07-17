@@ -12,7 +12,7 @@ if (cl_enabled) {
   $M.initcl();
 }
 
-var layer_test_cases = 'linear_1d linear_3d relu convolution_2d convolution_2d_stride_pad max_pooling_2d'.split(' ');
+var layer_test_cases = 'linear_1d linear_3d relu convolution_2d convolution_2d_stride_pad max_pooling_2d average_pooling_2d'.split(' ');
 
 function test_layer_case(case_name: string, done: any, cl: boolean) {
   var case_data = load_layer_case(case_name, cl);
