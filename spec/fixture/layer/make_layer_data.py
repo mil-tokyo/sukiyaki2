@@ -30,6 +30,15 @@ def reverse_order(*mats):
         rets.append(np.moveaxis(x, perm_from, perm_to))
     return rets
 
+def reorder_nchw_hwcn(*mats):
+    # order from (n, c, h, w) to (h, w, c, n)
+    rets = []
+    nchw = (0, 1, 2, 3)
+    hwcn = (3, 2, 0, 1)
+    for x in mats:
+        rets.append(np.moveaxis(x, nchw, hwcn))
+    return rets
+
 def linear(n, out_ch, in_shape):
     from chainer.functions.connection.linear import LinearFunction
     f = LinearFunction()
@@ -82,14 +91,7 @@ def convolution_2d(n, in_size, out_size, in_shape, ksize, stride, pad):
     gx, gW, gb = f.backward((x, W, b), (gy,))
 
     # change order from (n, c, h, w) to (h, w, c, n), (out,in,h,w) to (h, w, in, out)
-    nchw = (0, 1, 2, 3)
-    hwcn = (3, 2, 0, 1)
-    x = np.moveaxis(x, nchw, hwcn)
-    W = np.moveaxis(W, nchw, hwcn)
-    y = np.moveaxis(y, nchw, hwcn)
-    gy = np.moveaxis(gy, nchw, hwcn)
-    gx = np.moveaxis(gx, nchw, hwcn)
-    gW = np.moveaxis(gW, nchw, hwcn)
+    x, W, y, gy, gx, gW = reorder_nchw_hwcn(x, W, y, gy, gx, gW)
 
     layer_params = {"type":"convolution_2d", "params": {"in_size":in_size, "out_size":out_size, "ksize":ksize, "stride":stride, "pad":pad}}
 
@@ -111,16 +113,41 @@ def pooling_2d(type, n, in_size, in_shape, ksize, stride, pad):
     y, = f.forward((x, ))
     gy = random_float32(y.shape)
     gx, = f.backward((x, ), (gy, ))
-    nchw = (0, 1, 2, 3)
-    hwcn = (3, 2, 0, 1)
-    x = np.moveaxis(x, nchw, hwcn)
-    y = np.moveaxis(y, nchw, hwcn)
-    gy = np.moveaxis(gy, nchw, hwcn)
-    gx = np.moveaxis(gx, nchw, hwcn)
+
+    x, y, gy, gx = reorder_nchw_hwcn(x, y, gy, gx)
 
     layer_params = {"type":"pooling_2d", "params": {"ksize":ksize, "stride":stride, "pad":pad, "type": type}}
 
     return {"layer_params":layer_params,
+        "forward":{"bottoms":[x], "tops":[y]},
+        "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
+
+def batch_normalization(in_shape, eps = 1e-5):
+    from chainer.functions.normalization.batch_normalization import BatchNormalizationFunction
+    f = BatchNormalizationFunction(eps = eps)
+    # assumes (n, c) or (n, c, h, w); c is dimension to be normalized
+    # in sukiyaki, shape is (c, n) and (h, w, c, n)
+    c = in_shape[1]
+    gamma = random_float32((c, ))
+    beta = random_float32((c, ))
+    x = random_float32(in_shape)
+    y, = f.forward((x, gamma, beta))
+
+    gy = random_float32(in_shape)
+    gx, ggamma, gbeta = f.backward((x, gamma, beta), (gy, ))
+
+    shape_4d = len(in_shape) == 4
+    if shape_4d:
+        target_dim = 3
+        x, y, gy, gx = reorder_nchw_hwcn(x, y, gy, gx)
+    else:
+        target_dim = 1
+        x, y, gy, gx = reverse_order(x, y, gy, gx)
+
+    layer_params = {"type":"batch_normalization", "params": {"target_dim": target_dim, "in_size": c, "eps": eps}}
+    return {"layer_params":layer_params,
+        "train_params":{"gamma":gamma, "beta":beta},
+        "delta_params":{"delta_gamma":ggamma, "delta_beta": gbeta},
         "forward":{"bottoms":[x], "tops":[y]},
         "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
@@ -164,3 +191,5 @@ if __name__ == '__main__':
     save_case("convolution_2d_1x1", convolution_2d(4, 2, 3, (7, 6), (1, 1),(1, 1),(0,0)))
     save_case("max_pooling_2d", pooling_2d('max', 2, 3, (6, 7), (3, 5), (2, 3), (1, 2)))
     save_case("average_pooling_2d", pooling_2d('average', 2, 3, (6, 7), (3, 5), (2, 3), (1, 2)))
+    save_case("batch_normalization_2d", batch_normalization((4, 5), eps = 1e-5))
+    save_case("batch_normalization_4d", batch_normalization((4, 5, 6, 7), eps = 1e-3))

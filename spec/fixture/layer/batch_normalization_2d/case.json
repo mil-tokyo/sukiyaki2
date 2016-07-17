@@ -1,0 +1,1 @@
+{"layer_params": {"params": {"in_size": 5, "eps": 1e-05, "target_dim": 1}, "type": "batch_normalization"}, "blobs": {"train_params": ["beta", "gamma"], "backward": {"bottoms": 1, "top_deltas": 1, "bottom_deltas": 1}, "delta_params": ["delta_beta", "delta_gamma"], "forward": {"tops": 1, "bottoms": 1}}}

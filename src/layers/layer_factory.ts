@@ -10,6 +10,7 @@ import ReluLayer = require('./relu_layer');
 import AccuracyLayer = require('./accuracy_layer');
 import Convolution2DLayer = require('./convolution_2d_layer');
 import Pooling2DLayer = require('./pooling_2d_layer');
+import BatchNormalizationLayer = require('./batch_normalization_layer');
 
 class LayerFactory {  
   static create(type: string, params: any): Layer {
@@ -36,6 +37,8 @@ class LayerFactory {
         return new Convolution2DLayer(params);
       case 'pooling_2d':
         return new Pooling2DLayer(params);
+      case 'batch_normalization':
+        return new BatchNormalizationLayer(params);
       default:
         throw new Error('Unknown layer');
     }
