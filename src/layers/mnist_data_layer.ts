@@ -7,7 +7,7 @@ class MnistDataLayer extends Layer {
   length: number;
   data: $M.Matrix;
   label: $M.Matrix;
-  data_dim: number = 28 * 28;
+  data_shape: number[] = [28, 28, 1];
   constructor(public params: any) {
     super();
   }
@@ -19,7 +19,7 @@ class MnistDataLayer extends Layer {
       this.label = $M.typedarray2mat([1, label_ary.length], 'uint8', label_ary);
       this.length = label_ary.length;
       console.log('Data length set to ' + this.length);
-      this.data = $M.typedarray2mat([this.data_dim, this.length], 'single', data_ary);
+      this.data = $M.typedarray2mat(this.data_shape.concat([this.length]), 'single', data_ary);
       callback();
     });
   }
@@ -30,7 +30,7 @@ class MnistDataLayer extends Layer {
     var range_size = range.get(2);
     range_min = range_min % this.length;
     var range_max = range_min + range_size - 1;
-    var batch_data = this.data.get($M.colon(), $M.colon(range_min, range_max));
+    var batch_data = this.data.get($M.colon(), $M.colon(), $M.colon(), $M.colon(range_min, range_max));
     var batch_label = this.label.get($M.colon(), $M.colon(range_min, range_max));
     if (config.devicetype == 'cl') {
       var batch_data2 = batch_data;

@@ -25,7 +25,7 @@ class Convolution2DLayer extends Layer {
     this.weight = $M.times(
       $M.randn(this.ksize[0], this.ksize[1], this.in_size, this.out_size),
       1.0 / Math.sqrt(this.ksize[0] * this.ksize[1] * this.in_size));
-    this.bias = $M.zeros(this.in_size, 1);
+    this.bias = $M.zeros(this.out_size, 1);
     this.delta_weight = null;//$M.zeros(in_size, out_size);
     this.delta_bias = null;//$M.zeros(out_size, 1);
     this.train_params = ['weight', 'bias'];
