@@ -69,7 +69,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
             if (case_data.blobs.delta_params.hasOwnProperty(param_name)) {
               var expected_delta = case_data.blobs.delta_params[param_name];
               try {
-                expect($M.allclose(layer[param_name], expected_delta)).toBeTruthy();
+                expect($M.allclose(layer[param_name], expected_delta, 1e-4)).toBeTruthy();
               } catch (error) {
                 console.error('Exception on calculateUpdateParams test: ' + error);
               }
@@ -83,7 +83,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
               for (var backward_bottom_i = 0; backward_bottom_i < case_data.blobs.backward.bottom_deltas.length; backward_bottom_i++) {
                 var expected_bottom_delta = case_data.blobs.backward.bottom_deltas[backward_bottom_i];
                 try {
-                  expect($M.allclose(actual_bottom_deltas[backward_bottom_i], expected_bottom_delta)).toBeTruthy();
+                  expect($M.allclose(actual_bottom_deltas[backward_bottom_i], expected_bottom_delta, 1e-4)).toBeTruthy();
                 } catch (error) {
                   console.error('Exception on backward test: ' + error);
                 }
