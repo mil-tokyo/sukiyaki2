@@ -34,8 +34,8 @@ function train_mnist(load_weight: boolean = false, cl: boolean = false) {
 
   // LeNet
   var layers = [
-    { name: "d_train", type: "mnist_data", params: { "data": "mnist/data_train.bin", "label": "mnist/label_train.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
-    { name: "d_test", type: "mnist_data", params: { "data": "mnist/data_test.bin", "label": "mnist/label_test.bin" }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
+    { name: "d_train", type: "blob_data", params: { "file_prefix": "mnist/data_train", "data_shape": [28, 28, 1] }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
+    { name: "d_test", type: "blob_data", params: { "file_prefix": "mnist/data_test", "data_shape": [28, 28, 1] }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
     { name: "conv1", type: "convolution_2d", params: { in_size: 1, out_size: 20, ksize: [5, 5], stride: [1, 1], pad: [0, 0] }, inputs: ["data"], outputs: ["conv1"] },
     { name: "pool1", type: "pooling_2d", params: {type: "max", ksize: [2, 2], stride: [2, 2], pad: [0, 0]}, inputs: ["conv1"], outputs: ["pool1"] },
     { name: "conv2", type: "convolution_2d", params: { in_size: 20, out_size: 50, ksize: [5, 5], stride: [1, 1], pad: [0, 0] }, inputs: ["pool1"], outputs: ["conv2"] },

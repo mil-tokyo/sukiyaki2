@@ -5,6 +5,7 @@ import PlusLayer = require('./plus_layer');
 import DataLayer = require('./data_layer');
 import LossLayer = require('./loss_layer');
 import MnistDataLayer = require('./mnist_data_layer');
+import BlobDataLayer = require('./blob_data_layer');
 import SoftmaxCrossEntropyLayer = require('./softmax_cross_entropy_layer');
 import ReluLayer = require('./relu_layer');
 import AccuracyLayer = require('./accuracy_layer');
@@ -27,6 +28,8 @@ class LayerFactory {
         return new LossLayer(params);
       case 'mnist_data':
         return new MnistDataLayer(params);
+      case 'blob_data':
+        return new BlobDataLayer(params);
       case 'softmax_cross_entropy':
         return new SoftmaxCrossEntropyLayer(params);
       case 'relu':
