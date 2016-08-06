@@ -118,4 +118,4 @@ function train_mnist(load_weight: boolean = false, cl: boolean = false) {
 }
 
 export = train_mnist;
-train_mnist();
+train_mnist(false, true);
