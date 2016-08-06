@@ -26,8 +26,13 @@ var layer_test_cases = [
 function test_layer_case(case_name: string, done: any, cl: boolean) {
   var case_data = load_layer_case(case_name, cl);
   var layer = Sukiyaki.LayerFactory.create(case_data.layer_params.type, case_data.layer_params.params);
+  var forward_config = new Sukiyaki.ForwardConfiguration();
+  forward_config.phase = 'train';
   if (cl) {
     layer.to_cl();
+    forward_config.devicetype = 'cl';
+  } else {
+    forward_config.devicetype = 'cpu';
   }
 
   //fill parameters to train (weight, bias)
@@ -46,7 +51,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
     }
   }
 
-  layer.forward(case_data.blobs.forward.bottoms, null, (actual_tops) => {
+  layer.forward(case_data.blobs.forward.bottoms, forward_config, (actual_tops) => {
     // test forward result
     for (var forward_top_i = 0; forward_top_i < case_data.blobs.forward.tops.length; forward_top_i++) {
       var expected_top = case_data.blobs.forward.tops[forward_top_i];
@@ -63,7 +68,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
     } else {
       // update test
       layer.calculateUpdateParams(case_data.blobs.backward.bottoms,
-        case_data.blobs.backward.top_deltas, null, () => {
+        case_data.blobs.backward.top_deltas, forward_config, () => {
           // test update result
           for (var param_name in case_data.blobs.delta_params) {
             if (case_data.blobs.delta_params.hasOwnProperty(param_name)) {
@@ -78,7 +83,7 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
 
           // backward test
           layer.backward(case_data.blobs.backward.bottoms,
-            case_data.blobs.backward.top_deltas, null, (actual_bottom_deltas) => {
+            case_data.blobs.backward.top_deltas, forward_config, (actual_bottom_deltas) => {
               // test backward result
               for (var backward_bottom_i = 0; backward_bottom_i < case_data.blobs.backward.bottom_deltas.length; backward_bottom_i++) {
                 var expected_bottom_delta = case_data.blobs.backward.bottom_deltas[backward_bottom_i];

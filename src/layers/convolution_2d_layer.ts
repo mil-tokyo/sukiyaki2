@@ -44,7 +44,12 @@ class Convolution2DLayer extends Layer {
       var output: $M.Matrix = null;
       for (var batch = 1; batch <= n; batch++) {
         var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-        var col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        var col: $M.Matrix;
+        if (config.devicetype == 'cl') {
+          col = im2col.im2col_cl(img, this.ksize, this.stride, this.pad);
+        } else {
+          col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        }
         var col_shape = $M.sizejsa(col);
         var out_h = col_shape[0];
         var out_w = col_shape[1];
@@ -90,7 +95,12 @@ class Convolution2DLayer extends Layer {
           output = $M.zeros($M.size(data));
         }
         delta_col_batch.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, 1);
-        var bottom_delta_col = im2col.col2im_cpu(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
+        var bottom_delta_col: $M.Matrix;
+        if (config.devicetype == 'cl') {
+          bottom_delta_col = im2col.col2im_cl(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
+        } else {
+          bottom_delta_col = im2col.col2im_cpu(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
+        }
         output.set($M.colon(), $M.colon(), $M.colon(), batch, bottom_delta_col);
       }
       return output;
@@ -110,7 +120,12 @@ class Convolution2DLayer extends Layer {
       var output: $M.Matrix = null;
       for (var batch = 1; batch <= n; batch++) {
         var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-        var col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        var col: $M.Matrix;
+        if (config.devicetype == 'cl') {
+          col = im2col.im2col_cl(img, this.ksize, this.stride, this.pad);
+        } else {
+          col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        }
         var col_shape = $M.sizejsa(col);
         var out_h = col_shape[0];
         var out_w = col_shape[1];
