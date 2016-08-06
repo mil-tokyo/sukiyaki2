@@ -57,7 +57,11 @@ class Convolution2DLayer extends Layer {
         var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
         var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
         if (batch == 1) {
-          output = $M.zeros(out_h * out_w, this.out_size, n);
+          if (config.devicetype == 'cl') {
+            output = $M.zeros(out_h * out_w, this.out_size, n, 'gpuArray');
+          } else {
+            output = $M.zeros(out_h * out_w, this.out_size, n);
+          }
         }
         output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
       }
@@ -92,7 +96,11 @@ class Convolution2DLayer extends Layer {
 
         var delta_col_batch = $M.mtimes(top_delta_batch, weight_t);
         if (batch == 1) {
-          output = $M.zeros($M.size(data));
+          if (config.devicetype == 'cl') {
+            output = $M.zeros($M.size(data), 'gpuArray');
+          } else {
+            output = $M.zeros($M.size(data));
+          }
         }
         delta_col_batch.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, 1);
         var bottom_delta_col: $M.Matrix;
