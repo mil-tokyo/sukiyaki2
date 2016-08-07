@@ -27,9 +27,7 @@ class ReluLayer extends Layer {
     var top_delta: $M.Matrix = top_deltas[0];
 
     let bottom_delta = $M.autodestruct(() => {
-      var coef = $M.zeros($M.size(data));
-      coef.set($M.gt(data, 0), 1.0);
-      let bottom_delta = $M.times(top_delta, coef);
+      let bottom_delta = $M.times(top_delta, $M.gt(data, 0));
       return bottom_delta;
     });
 
