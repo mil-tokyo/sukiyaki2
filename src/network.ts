@@ -72,11 +72,17 @@ class Network {
   timer_name: string;
   _start_timer(name: string) {
       this.timer_name = name;
+      if (this.devicetype == 'cl') {
+        $M.CL.finish();
+      }
       this.timer_val = Date.now();
   }
 
   _stop_timer() {
     if (this.layer_time) {
+      if (this.devicetype == 'cl') {
+        $M.CL.finish();
+      }
       var end_time = Date.now();
       var time_ms = end_time - this.timer_val;
       this.layer_time[this.timer_name] = time_ms;
