@@ -36,11 +36,13 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
 
     { name: "fc6", type: "linear", params: { in_shape: [6, 6, 256], out_size: 4096 }, inputs: ["pool5"], outputs: ["fc6"] },
     { name: "relu6", type: "relu", params: {}, inputs: ["fc6"], outputs: ["relu6"] },
+    { name: "dropout6", type: "dropout", params: { dropout_ratio: 0.5 }, inputs: ["relu6"], outputs: ["dropout6"] },
 
-    { name: "fc7", type: "linear", params: { in_shape: [4096], out_size: 4096 }, inputs: ["relu6"], outputs: ["fc7"] },
+    { name: "fc7", type: "linear", params: { in_shape: [4096], out_size: 4096 }, inputs: ["dropout6"], outputs: ["fc7"] },
     { name: "relu7", type: "relu", params: {}, inputs: ["fc7"], outputs: ["relu7"] },
+    { name: "dropout7", type: "dropout", params: { dropout_ratio: 0.5 }, inputs: ["relu7"], outputs: ["dropout7"] },
 
-    { name: "fc8", type: "linear", params: { in_shape: [4096], out_size: 1000 }, inputs: ["relu7"], outputs: ["pred"] },
+    { name: "fc8", type: "linear", params: { in_shape: [4096], out_size: 1000 }, inputs: ["dropout7"], outputs: ["pred"] },
 
     { name: "l", type: "softmax_cross_entropy", params: {}, inputs: ["pred", "label"], outputs: ["loss"] },
     { name: "a", type: "accuracy", params: {}, inputs: ["pred", "label"], outputs: ["accuracy"], phase: ["test"] }

@@ -12,6 +12,7 @@ import AccuracyLayer = require('./accuracy_layer');
 import Convolution2DLayer = require('./convolution_2d_layer');
 import Pooling2DLayer = require('./pooling_2d_layer');
 import BatchNormalizationLayer = require('./batch_normalization_layer');
+import DropoutLayer = require('./dropout_layer');
 
 class LayerFactory {  
   static create(type: string, params: any): Layer {
@@ -42,6 +43,8 @@ class LayerFactory {
         return new Pooling2DLayer(params);
       case 'batch_normalization':
         return new BatchNormalizationLayer(params);
+      case 'dropout':
+        return new DropoutLayer(params);
       default:
         throw new Error('Unknown layer');
     }
