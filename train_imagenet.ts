@@ -52,6 +52,7 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
     if (cl) {
       net.to_cl();
     }
+    net.layer_time = {};
     var opt = new OptimizerSGD(net, 1e-3);
     var batch_size = 10;
 
@@ -77,6 +78,12 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
       opt.update(input_vars, () => {
         if (iter % 10 == 0) {
           console.log('loss: ' + net.blobs_forward['loss']);
+          for (var key in net.layer_time) {
+            if (net.layer_time.hasOwnProperty(key)) {
+              var element = net.layer_time[key];
+              console.log(key + '\t' + element);
+            }
+          }
         }
         opt.release();
         if (iter < max_iter) {

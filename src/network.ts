@@ -11,6 +11,7 @@ class Network {
   layer_instances: { [index: string]: Layer };
   blobs_forward: { [index: string]: $M.Matrix };
   blobs_backward: { [index: string]: $M.Matrix };
+  layer_time: { [index: string]: number };
 
   constructor(layers: { name: string, type: string, params: any, inputs: string[], outputs: string[], phase?: string[] }[]) {
     this.phase = 'test';
@@ -40,7 +41,7 @@ class Network {
 
     init_next_layer();
   }
-  
+
   to_cpu(): void {
     if (this.devicetype == 'cpu') {
       return;
@@ -53,7 +54,7 @@ class Network {
     }
     this.devicetype = 'cpu';
   }
-  
+
   to_cl(): void {
     if (this.devicetype == 'cl') {
       return;
@@ -65,6 +66,21 @@ class Network {
       }
     }
     this.devicetype = 'cl';
+  }
+
+  timer_val: number;
+  timer_name: string;
+  _start_timer(name: string) {
+      this.timer_name = name;
+      this.timer_val = Date.now();
+  }
+
+  _stop_timer() {
+    if (this.layer_time) {
+      var end_time = Date.now();
+      var time_ms = end_time - this.timer_val;
+      this.layer_time[this.timer_name] = time_ms;
+    }
   }
 
   forward(input_vars: { [index: string]: $M.Matrix }, callback: () => void): void {
@@ -92,7 +108,9 @@ class Network {
       }
 
       //console.log('forward ' + layer_prop.name);
+      this._start_timer(layer_prop.name + '.forward');
       layer_instance.forward(bottom_vars, forward_config, (tops) => {
+        this._stop_timer();
         // save top vars
         for (var index = 0; index < tops.length; index++) {
           var top_var = tops[index];
@@ -155,17 +173,21 @@ class Network {
           } else {
             ones = $M.ones($M.size(top_forward));
           }
-          this.blobs_backward[var_name] = ones; 
+          this.blobs_backward[var_name] = ones;
         }
         top_deltas.push(this.blobs_backward[var_name]);
       }
 
       //console.log('calculateUpdateParams ' + layer_prop.name);
+      this._start_timer(layer_prop.name + '.calcUpdate');
       layer_instance.calculateUpdateParams(bottom_vars, top_deltas, forward_config, () => {
+        this._stop_timer();
         if (update_until < layer_index) {
           // backward needed
           //console.log('backward ' + layer_prop.name);
+          this._start_timer(layer_prop.name + '.backward');
           layer_instance.backward(bottom_vars, top_deltas, forward_config, (bottom_deltas: any[]) => {
+            this._stop_timer();
             // save bottom_delta vars
             for (var index = 0; index < bottom_deltas.length; index++) {
               var bottom_delta = bottom_deltas[index];
