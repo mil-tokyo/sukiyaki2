@@ -14,12 +14,12 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
     { name: "d_train", type: "blob_data", params: { "file_prefix": "imagenet/train_100k", "data_shape": [227, 227, 3] }, inputs: ["batch"], outputs: ["data", "label"], phase: ["train"] },
     { name: "d_test", type: "blob_data", params: { "file_prefix": "imagenet/val", "data_shape": [227, 227, 3] }, inputs: ["batch"], outputs: ["data", "label"], phase: ["test"] },
 
-    { name: "conv1", type: "convolution_2d", params: { in_size: 3, out_size: 96, ksize: [11, 11], stride: [4, 4], pad: [0, 0] }, inputs: ["data"], outputs: ["conv1"] },
+    { name: "conv1", type: "convolution_2d", params: { in_size: 3, out_size: 96, ksize: [11, 11], stride: [4, 4], pad: [0, 0], bias: false }, inputs: ["data"], outputs: ["conv1"] },
     { name: "bn1", type: "batch_normalization", params: { in_size: 96, target_dim: 3 }, inputs: ["conv1"], outputs: ["bn1"] },
     { name: "relu1", type: "relu", params: {}, inputs: ["bn1"], outputs: ["relu1"] },
     { name: "pool1", type: "pooling_2d", params: { type: "max", ksize: [3, 3], stride: [2, 2], pad: [0, 0] }, inputs: ["relu1"], outputs: ["pool1"] },
 
-    { name: "conv2", type: "convolution_2d", params: { in_size: 96, out_size: 256, ksize: [5, 5], stride: [1, 1], pad: [2, 2] }, inputs: ["pool1"], outputs: ["conv2"] },
+    { name: "conv2", type: "convolution_2d", params: { in_size: 96, out_size: 256, ksize: [5, 5], stride: [1, 1], pad: [2, 2], bias: false }, inputs: ["pool1"], outputs: ["conv2"] },
     { name: "bn2", type: "batch_normalization", params: { in_size: 256, target_dim: 3 }, inputs: ["conv2"], outputs: ["bn2"] },
     { name: "relu2", type: "relu", params: {}, inputs: ["bn2"], outputs: ["relu2"] },
     { name: "pool2", type: "pooling_2d", params: { type: "max", ksize: [3, 3], stride: [2, 2], pad: [0, 0] }, inputs: ["relu2"], outputs: ["pool2"] },

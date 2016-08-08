@@ -7,6 +7,7 @@ import ArrayHelper = require('../utils/array_helper');
 class Convolution2DLayer extends Layer {
   weight: $M.Matrix;
   bias: $M.Matrix;
+  use_bias: boolean;
   delta_weight: $M.Matrix;
   delta_bias: $M.Matrix;
   in_size: number;
@@ -20,17 +21,24 @@ class Convolution2DLayer extends Layer {
     this.need_update = true;
     this.in_size = params.in_size;
     this.out_size = params.out_size;
+    this.use_bias = params.bias == null ? true : Boolean(params.bias);
     this.ksize = ArrayHelper.repeat_scalar(params.ksize, 2);//kernel size [3,3]
     this.stride = ArrayHelper.repeat_scalar(params.stride, 2);
     this.pad = ArrayHelper.repeat_scalar(params.pad, 2);
     this.weight = $M.times(
       $M.randn(this.ksize[0], this.ksize[1], this.in_size, this.out_size),
       1.0 / Math.sqrt(this.ksize[0] * this.ksize[1] * this.in_size));
-    this.bias = $M.zeros(this.out_size, 1);
     this.delta_weight = null;//$M.zeros(in_size, out_size);
     this.delta_bias = null;//$M.zeros(out_size, 1);
-    this.train_params = ['weight', 'bias'];
-    this.delta_params = ['delta_weight', 'delta_bias'];
+    if (this.use_bias) {
+      this.bias = $M.zeros(this.out_size, 1);
+      this.train_params = ['weight', 'bias'];
+      this.delta_params = ['delta_weight', 'delta_bias'];
+    } else {
+      this.bias = null;
+      this.train_params = ['weight'];
+      this.delta_params = ['delta_weight'];
+    }
   }
 
   init(callback: () => void): void {
@@ -56,7 +64,11 @@ class Convolution2DLayer extends Layer {
         var out_w = col_shape[1];
         col.reshape_inplace(out_h * out_w, -1);
         var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
-        var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
+        if (this.use_bias) {
+          var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
+        } else {
+          var output_b_with_bias = output_b;
+        }
         if (batch == 1) {
           if (config.devicetype == 'cl') {
             output = $M.zeros(out_h * out_w, this.out_size, n, 'gpuArray');
@@ -161,14 +173,16 @@ class Convolution2DLayer extends Layer {
     old_delta_weight.destruct();
     new_delta_weight.destruct();
 
-    var new_delta_bias = $M.autodestruct(() => {
-      var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
-      td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
-      var delta_bias = $M.sum(td_permuted, 2);
-      return $M.plus(this.delta_bias, delta_bias);
-    });
-    this.delta_bias.destruct();
-    this.delta_bias = new_delta_bias;
+    if (this.use_bias) {
+      var new_delta_bias = $M.autodestruct(() => {
+        var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
+        td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
+        var delta_bias = $M.sum(td_permuted, 2);
+        return $M.plus(this.delta_bias, delta_bias);
+      });
+      this.delta_bias.destruct();
+      this.delta_bias = new_delta_bias;
+    }
 
     setImmediate(function () {
       callback();
