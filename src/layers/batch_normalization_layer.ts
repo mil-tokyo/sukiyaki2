@@ -2,6 +2,120 @@ import $M = require('milsushi2');
 import Layer = require('./layer');
 import ForwardConfiguration = require('../forward_configuration');
 
+var bn_forward_kernel: any = null;
+var bn_backward_kernel: any = null;
+
+function get_bn_forward_kernel(): any {
+  if (!bn_forward_kernel) {
+    bn_forward_kernel = $M.CL.createKernel([
+      '#define MAX_WORK_SIZE 256',
+      '__kernel void kernel_func(__global float *top, __global float *x_normalized, __global float *std,',
+      '__global const float *data, __global const float *gamma, __global const float *beta,',
+      'uint left_size, uint channel_size, uint right_size, float eps)',
+      '{',
+      'uint ch = get_group_id(0);',
+      'uint i = get_local_id(0);',
+      'uint work_size = get_local_size(0);',
+      '__local float node_sum[MAX_WORK_SIZE];',
+      '__local float node_sqsum[MAX_WORK_SIZE];',
+      //get sum and squared sum
+      'float local_sum = 0.0F, local_sqsum = 0.0F;',
+      'for (int j = i; j < left_size * right_size; j += work_size) {',
+      '  float val = data[(j % left_size) + (ch + j / left_size * channel_size) * left_size];',
+      '  local_sum += val;',
+      '  local_sqsum += val * val;',
+      '}',
+      'node_sum[i] = local_sum;',
+      'node_sqsum[i] = local_sqsum;',
+      'barrier(CLK_LOCAL_MEM_FENCE);',
+      // calculate mean, std by node i==0
+      'float mean = 0.0F, variance = 0.0F, stdev = 0.0F;',
+      'if (i == 0) {',
+      '  for (int j = 1; j < work_size; j++) {',
+      '    local_sum += node_sum[j];',
+      '    local_sqsum += node_sqsum[j];',
+      '  }',
+      '  mean = local_sum / (left_size * right_size);',
+      '  variance = local_sqsum / (left_size * right_size) - mean * mean;',
+      '  stdev = sqrt(variance + eps);',
+      '  node_sum[0] = mean;',//pass to other nodes
+      '  node_sqsum[0] = stdev;',
+      '  std[ch] = stdev;',
+      '}',
+      'barrier(CLK_LOCAL_MEM_FENCE);',
+      // normalize variables
+      'mean = node_sum[0];',
+      'float inv_stdev = 1.0F / node_sqsum[0];',
+      'float ch_gamma = gamma[ch], ch_beta = beta[ch];',
+      'for (int j = i; j < left_size * right_size; j += work_size) {',
+      '  int idx = (j % left_size) + (ch + j / left_size * channel_size) * left_size;',
+      '  float val = data[idx];',
+      '  val = (val - mean) * inv_stdev;',
+      '  x_normalized[idx] = val;',
+      '  val = val * ch_gamma + ch_beta;',
+      '  top[idx] = val;',
+      '}',
+      '}'].join('\n'));
+  }
+  return bn_forward_kernel;
+}
+
+function get_bn_backward_kernel(): any {
+  if (!bn_backward_kernel) {
+    bn_backward_kernel = $M.CL.createKernel([
+      '#define MAX_WORK_SIZE 256',
+      '__kernel void kernel_func(__global float *bottom_delta, __global float *new_delta_gamma, __global float *new_delta_beta,',
+      '__global const float *top_delta, __global const float *tmp_x_normalized, __global const float *tmp_std,',
+      '__global const float *gamma, __global const float *delta_gamma, __global const float *delta_beta,',
+      'uint left_size, uint channel_size, uint right_size)',
+      '{',
+      'uint ch = get_group_id(0);',
+      'uint i = get_local_id(0);',
+      'uint work_size = get_local_size(0);',
+      '__local float node_top_delta_sum[MAX_WORK_SIZE];',
+      '__local float node_top_delta_x_norm_sum[MAX_WORK_SIZE];',
+      //get sum and squared sum
+      'float local_top_delta_sum = 0.0F, local_top_delta_x_norm_sum = 0.0F;',
+      'for (int j = i; j < left_size * right_size; j += work_size) {',
+      '  int idx = (j % left_size) + (ch + j / left_size * channel_size) * left_size;',
+      '  float val_delta = top_delta[idx];',
+      '  float val_txnorm = tmp_x_normalized[idx];',
+      '  local_top_delta_sum += val_delta;',
+      '  local_top_delta_x_norm_sum += val_delta * val_txnorm;',
+      '}',
+      'node_top_delta_sum[i] = local_top_delta_sum;',
+      'node_top_delta_x_norm_sum[i] = local_top_delta_x_norm_sum;',
+      'barrier(CLK_LOCAL_MEM_FENCE);',
+      // calculate mean, std by node i==0
+      'float cur_delta_beta = 0.0F, cur_delta_gamma = 0.0F;',
+      'if (i == 0) {',
+      '  for (int j = 1; j < work_size; j++) {',
+      '    local_top_delta_sum += node_top_delta_sum[j];',
+      '    local_top_delta_x_norm_sum += node_top_delta_x_norm_sum[j];',
+      '  }',
+      '  cur_delta_beta = local_top_delta_sum;',
+      '  cur_delta_gamma = local_top_delta_x_norm_sum;',
+      '  node_top_delta_sum[0] = cur_delta_beta;',//pass to other nodes
+      '  node_top_delta_x_norm_sum[0] = cur_delta_gamma;',
+      '  new_delta_gamma[ch] = cur_delta_gamma + delta_gamma[ch];',
+      '  new_delta_beta[ch] = cur_delta_beta + delta_beta[ch];',
+      '}',
+      'barrier(CLK_LOCAL_MEM_FENCE);',
+      // normalize variables
+      'cur_delta_beta = node_top_delta_sum[0];',
+      'cur_delta_gamma = node_top_delta_x_norm_sum[0];',
+      'float gds = gamma[ch] / tmp_std[ch];',
+      'float coef1 = cur_delta_gamma / (left_size * right_size);',
+      'float coef2 = cur_delta_beta / (left_size * right_size);',
+      'for (int j = i; j < left_size * right_size; j += work_size) {',
+      '  int idx = (j % left_size) + (ch + j / left_size * channel_size) * left_size;',
+      '  bottom_delta[idx] = (top_delta[idx] - tmp_x_normalized[idx] * coef1 - coef2) * gds;',
+      '}',
+      '}'].join('\n'));
+  }
+  return bn_backward_kernel;
+}
+
 class BatchNormalizationLayer extends Layer {
   gamma: $M.Matrix;
   beta: $M.Matrix;
@@ -39,32 +153,71 @@ class BatchNormalizationLayer extends Layer {
     //TODO: use saved mean / var when testing
     var data: $M.Matrix = bottoms[0];
 
-    var [top, x_normalized, std] = $M.autodestruct(() => {
-      // move dimension to be normalized into first dim
-      var ndim = $M.ndims(data);
-      var perm = [this.target_dim];
-      for (var i = 1; i <= ndim; i++) {
-        if (i != this.target_dim) {
-          perm.push(i);
+    if (config.devicetype == 'cl') {
+      var data_size = $M.sizejsa(data);
+      var data_size_mat = $M.size(data);
+      // divide matrix dimensions to left of channel, channel, right of channel
+      var left_size = 1;
+      var channel_size = 1;
+      var right_size = 1;
+      for (var dim = 0; dim < data_size.length; dim++) {
+        var dim_size = data_size[dim];
+        if (dim + 1 < this.target_dim) {
+          left_size *= dim_size;
+        } else if (dim + 1 == this.target_dim) {
+          channel_size = dim_size;
+        } else {
+          right_size *= dim_size;
         }
       }
-      var perm_data = $M.permute(data, perm);
-      var perm_data_origsize = $M.size(perm_data);
-      perm_data.reshape_inplace(this.in_size, -1);//(c, n) or (c, h*w*n)
-      var n = $M.size(perm_data, 2);
-      var mean = $M.mean(perm_data, 2);
-      var variance = $M.variance(perm_data, 1, 2);//w=1 to correspond to chainer
-      variance = $M.plus(variance, this.eps);
-      var std = $M.power(variance, 0.5);//TODO: use sqrt
-      var tmp = $M.minus(perm_data, $M.repmat(mean, 1, n));
-      var normalized = $M.rdivide(tmp, $M.repmat(std, 1, n));
-      tmp = $M.times(normalized, $M.repmat(this.gamma, 1, n));
-      tmp = $M.plus(tmp, $M.repmat(this.beta, 1, n));
-      tmp.reshape_inplace(perm_data_origsize);
-      var output = $M.ipermute(tmp, perm);
-      return [output, normalized, std];
-    });
-    this.tmp_x_normalized = x_normalized;
+      var top: any = $M.zeros(data_size_mat, 'gpuArray');
+      var x_normalized: any = $M.zeros(data_size_mat, 'gpuArray');
+      var std: any = $M.zeros(channel_size, 1, 'gpuArray');
+
+      var WebCL = $M.CL.WebCL;
+      var group_size = 256;
+      $M.CL.executeKernel(get_bn_forward_kernel(), [
+        { access: WebCL.MEM_WRITE_ONLY, datum: top },
+        { access: WebCL.MEM_WRITE_ONLY, datum: x_normalized },
+        { access: WebCL.MEM_WRITE_ONLY, datum: std },
+        { access: WebCL.MEM_READ_ONLY, datum: data },
+        { access: WebCL.MEM_READ_ONLY, datum: this.gamma },
+        { access: WebCL.MEM_READ_ONLY, datum: this.beta },
+        { datum: left_size, type: WebCL.type.UINT },
+        { datum: channel_size, type: WebCL.type.UINT },
+        { datum: right_size, type: WebCL.type.UINT },
+        { datum: this.eps, type: WebCL.type.FLOAT }
+      ], [group_size * channel_size], [group_size]);
+      // one local group handles one channel
+    } else {
+      var [top, x_normalized, std] = $M.autodestruct(() => {
+        // move dimension to be normalized into first dim
+        var ndim = $M.ndims(data);
+        var perm = [this.target_dim];
+        for (var i = 1; i <= ndim; i++) {
+          if (i != this.target_dim) {
+            perm.push(i);
+          }
+        }
+        var perm_data = $M.permute(data, perm);
+        var perm_data_origsize = $M.size(perm_data);
+        perm_data.reshape_inplace(this.in_size, -1);//(c, n) or (c, h*w*n)
+        var n = $M.size(perm_data, 2);
+        var mean = $M.mean(perm_data, 2);
+        var variance = $M.variance(perm_data, 1, 2);//w=1 to correspond to chainer
+        variance = $M.plus(variance, this.eps);
+        var std = $M.power(variance, 0.5);//TODO: use sqrt
+        var tmp = $M.minus(perm_data, $M.repmat(mean, 1, n));
+        var normalized = $M.rdivide(tmp, $M.repmat(std, 1, n));
+        tmp = $M.times(normalized, $M.repmat(this.gamma, 1, n));
+        tmp = $M.plus(tmp, $M.repmat(this.beta, 1, n));
+        tmp.reshape_inplace(perm_data_origsize);
+        var output = $M.ipermute(tmp, perm);
+        return [output, normalized, std];
+      });
+
+    }
+    this.tmp_x_normalized = x_normalized;//cl: data_shape, cpu: (c, h*w*n)
     this.tmp_std = std;
     this.calc_update_called = false;
 
@@ -89,6 +242,49 @@ class BatchNormalizationLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
 
+    var new_delta_gamma: any;
+    var new_delta_beta: any;
+    var bottom_delta: any;
+    if (config.devicetype == 'cl') {
+      var data_size = $M.sizejsa(top_delta);
+      var data_size_mat = $M.size(top_delta);
+      // divide matrix dimensions to left of channel, channel, right of channel
+      var left_size = 1;
+      var channel_size = 1;
+      var right_size = 1;
+      for (var dim = 0; dim < data_size.length; dim++) {
+        var dim_size = data_size[dim];
+        if (dim + 1 < this.target_dim) {
+          left_size *= dim_size;
+        } else if (dim + 1 == this.target_dim) {
+          channel_size = dim_size;
+        } else {
+          right_size *= dim_size;
+        }
+      }
+      
+      bottom_delta = $M.zeros(data_size_mat, 'gpuArray');
+      new_delta_gamma = $M.zeros(channel_size, 1, 'gpuArray');
+      new_delta_beta = $M.zeros(channel_size, 1, 'gpuArray');
+
+      var WebCL = $M.CL.WebCL;
+      var group_size = 256;
+      $M.CL.executeKernel(get_bn_backward_kernel(), [
+        { access: WebCL.MEM_WRITE_ONLY, datum: bottom_delta },
+        { access: WebCL.MEM_WRITE_ONLY, datum: new_delta_gamma },
+        { access: WebCL.MEM_WRITE_ONLY, datum: new_delta_beta },
+        { access: WebCL.MEM_READ_ONLY, datum: top_delta },
+        { access: WebCL.MEM_READ_ONLY, datum: this.tmp_x_normalized },
+        { access: WebCL.MEM_READ_ONLY, datum: this.tmp_std },
+        { access: WebCL.MEM_READ_ONLY, datum: this.gamma },
+        { access: WebCL.MEM_READ_ONLY, datum: this.delta_gamma },
+        { access: WebCL.MEM_READ_ONLY, datum: this.delta_beta },
+        { datum: left_size, type: WebCL.type.UINT },
+        { datum: channel_size, type: WebCL.type.UINT },
+        { datum: right_size, type: WebCL.type.UINT }
+      ], [group_size * channel_size], [group_size]);
+
+    } else {
     var [new_delta_gamma, new_delta_beta, bottom_delta] = $M.autodestruct(() => {
       // move dimension to be normalized into first dim
       var ndim = $M.ndims(data);
@@ -119,6 +315,8 @@ class BatchNormalizationLayer extends Layer {
       var bottom_delta = $M.ipermute(perm_bottom_delta, perm);
       return [new_delta_gamma, new_delta_beta, bottom_delta];
     });
+
+    }
 
     this.delta_gamma.destruct();
     this.delta_gamma = new_delta_gamma;

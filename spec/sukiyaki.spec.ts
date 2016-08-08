@@ -39,7 +39,11 @@ function test_layer_case(case_name: string, done: any, cl: boolean) {
     for (var index = 0; index < layer.train_params.length; index++) {
       var train_param_name = layer.train_params[index];
       var delta_param_name = layer.delta_params[index];
-      layer[delta_param_name] = $M.zeros($M.size(layer[train_param_name]));
+      if (cl) {
+        layer[delta_param_name] = $M.zeros($M.size(layer[train_param_name]), 'gpuArray');
+      } else {
+        layer[delta_param_name] = $M.zeros($M.size(layer[train_param_name]));
+      }
     }
   }
 
@@ -100,11 +104,11 @@ describe('Sukiyaki module', function () {
 });
 
 describe('layer test', function () {
-  layer_test_cases.forEach((case_name) => {
-    it('layer case cpu ' + case_name, function (done) {
-      test_layer_case(case_name, done, false);
-    });
-  });
+  /*  layer_test_cases.forEach((case_name) => {
+      it('layer case cpu ' + case_name, function (done) {
+        test_layer_case(case_name, done, false);
+      });
+    });*/
 
   if (cl_enabled) {
     layer_test_cases.forEach((case_name) => {
