@@ -13,7 +13,7 @@ import numpy as np
 import chainer
 import chainer.functions as F
 
-DST_DIR = os.path.abspath(os.path.dirname(__file__)) + '/'
+DST_DIR = os.path.abspath(os.path.dirname(__file__)) + '/layer/'
 
 # utilities
 def random_float32(shape):
@@ -193,3 +193,7 @@ if __name__ == '__main__':
     save_case("average_pooling_2d", pooling_2d('average', 2, 3, (6, 7), (3, 5), (2, 3), (1, 2)))
     save_case("batch_normalization_2d", batch_normalization((4, 5), eps = 1e-5))
     save_case("batch_normalization_4d", batch_normalization((4, 5, 6, 7), eps = 1e-3))
+
+    # actual size
+    save_case("alexnet_conv1", convolution_2d(32, 3, 96, (227, 227), (11, 11), (4, 4), (0, 0)))
+    save_case("resnet_bn1", batch_normalization((32, 64, 56, 56), eps = 1e-3))
