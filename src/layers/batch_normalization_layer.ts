@@ -9,7 +9,7 @@ function get_bn_forward_kernel(): any {
   if (!bn_forward_kernel) {
     bn_forward_kernel = $M.CL.createKernel([
       '#define MAX_WORK_SIZE 256',
-      '__kernel void kernel_func(__global float *top, __global float *x_normalized, __global float *std,',
+      '__kernel void kernel_func(__global float *top, __global float *x_normalized, __global float *inv_std,',
       '__global const float *data, __global const float *gamma, __global const float *beta,',
       'uint left_size, uint channel_size, uint right_size, float eps)',
       '{',
@@ -29,7 +29,7 @@ function get_bn_forward_kernel(): any {
       'node_sqsum[i] = local_sqsum;',
       'barrier(CLK_LOCAL_MEM_FENCE);',
       // calculate mean, std by node i==0
-      'float mean = 0.0F, variance = 0.0F, stdev = 0.0F;',
+      'float mean = 0.0F, variance = 0.0F, inv_stdev = 0.0F;',
       'if (i == 0) {',
       '  for (int j = 1; j < work_size; j++) {',
       '    local_sum += node_sum[j];',
@@ -37,15 +37,15 @@ function get_bn_forward_kernel(): any {
       '  }',
       '  mean = local_sum / (left_size * right_size);',
       '  variance = local_sqsum / (left_size * right_size) - mean * mean;',
-      '  stdev = sqrt(variance + eps);',
+      '  inv_stdev = 1.0F / sqrt(variance + eps);',
       '  node_sum[0] = mean;',//pass to other nodes
-      '  node_sqsum[0] = stdev;',
-      '  std[ch] = stdev;',
+      '  node_sqsum[0] = inv_stdev;',
+      '  inv_std[ch] = inv_stdev;',
       '}',
       'barrier(CLK_LOCAL_MEM_FENCE);',
       // normalize variables
       'mean = node_sum[0];',
-      'float inv_stdev = 1.0F / node_sqsum[0];',
+      'inv_stdev = node_sqsum[0];',
       'float ch_gamma = gamma[ch], ch_beta = beta[ch];',
       'for (int j = i; j < left_size * right_size; j += work_size) {',
       '  int idx = (j % left_size) + (ch + j / left_size * channel_size) * left_size;',
@@ -65,7 +65,7 @@ function get_bn_backward_kernel(): any {
     bn_backward_kernel = $M.CL.createKernel([
       '#define MAX_WORK_SIZE 256',
       '__kernel void kernel_func(__global float *bottom_delta, __global float *new_delta_gamma, __global float *new_delta_beta,',
-      '__global const float *top_delta, __global const float *tmp_x_normalized, __global const float *tmp_std,',
+      '__global const float *top_delta, __global const float *tmp_x_normalized, __global const float *tmp_inv_std,',
       '__global const float *gamma, __global const float *delta_gamma, __global const float *delta_beta,',
       'uint left_size, uint channel_size, uint right_size)',
       '{',
@@ -104,7 +104,7 @@ function get_bn_backward_kernel(): any {
       // normalize variables
       'cur_delta_beta = node_top_delta_sum[0];',
       'cur_delta_gamma = node_top_delta_x_norm_sum[0];',
-      'float gds = gamma[ch] / tmp_std[ch];',
+      'float gds = gamma[ch] * tmp_inv_std[ch];',
       'float coef1 = cur_delta_gamma / (left_size * right_size);',
       'float coef2 = cur_delta_beta / (left_size * right_size);',
       'for (int j = i; j < left_size * right_size; j += work_size) {',
@@ -127,7 +127,7 @@ class BatchNormalizationLayer extends Layer {
 
   // temporary vars between forward and backward
   tmp_x_normalized: $M.Matrix;
-  tmp_std: $M.Matrix;
+  tmp_inv_std: $M.Matrix;
   tmp_bottom_delta: $M.Matrix;
   calc_update_called: boolean;
 
@@ -172,14 +172,14 @@ class BatchNormalizationLayer extends Layer {
       }
       var top: any = $M.zeros(data_size_mat, 'gpuArray');
       var x_normalized: any = $M.zeros(data_size_mat, 'gpuArray');
-      var std: any = $M.zeros(channel_size, 1, 'gpuArray');
+      var inv_std: any = $M.zeros(channel_size, 1, 'gpuArray');
 
       var WebCL = $M.CL.WebCL;
       var group_size = 256;
       $M.CL.executeKernel(get_bn_forward_kernel(), [
         { access: WebCL.MEM_WRITE_ONLY, datum: top },
         { access: WebCL.MEM_WRITE_ONLY, datum: x_normalized },
-        { access: WebCL.MEM_WRITE_ONLY, datum: std },
+        { access: WebCL.MEM_WRITE_ONLY, datum: inv_std },
         { access: WebCL.MEM_READ_ONLY, datum: data },
         { access: WebCL.MEM_READ_ONLY, datum: this.gamma },
         { access: WebCL.MEM_READ_ONLY, datum: this.beta },
@@ -190,7 +190,7 @@ class BatchNormalizationLayer extends Layer {
       ], [group_size * channel_size], [group_size]);
       // one local group handles one channel
     } else {
-      var [top, x_normalized, std] = $M.autodestruct(() => {
+      var [top, x_normalized, inv_std] = $M.autodestruct(() => {
         // move dimension to be normalized into first dim
         var ndim = $M.ndims(data);
         var perm = [this.target_dim];
@@ -206,19 +206,19 @@ class BatchNormalizationLayer extends Layer {
         var mean = $M.mean(perm_data, 2);
         var variance = $M.variance(perm_data, 1, 2);//w=1 to correspond to chainer
         variance = $M.plus(variance, this.eps);
-        var std = $M.power(variance, 0.5);//TODO: use sqrt
+        var inv_std = $M.power(variance, -0.5);//TODO: use sqrt
         var tmp = $M.minus(perm_data, $M.repmat(mean, 1, n));
-        var normalized = $M.rdivide(tmp, $M.repmat(std, 1, n));
+        var normalized = $M.times(tmp, $M.repmat(inv_std, 1, n));
         tmp = $M.times(normalized, $M.repmat(this.gamma, 1, n));
         tmp = $M.plus(tmp, $M.repmat(this.beta, 1, n));
         tmp.reshape_inplace(perm_data_origsize);
         var output = $M.ipermute(tmp, perm);
-        return [output, normalized, std];
+        return [output, normalized, inv_std];
       });
 
     }
     this.tmp_x_normalized = x_normalized;//cl: data_shape, cpu: (c, h*w*n)
-    this.tmp_std = std;
+    this.tmp_inv_std = inv_std;
     this.calc_update_called = false;
 
     setImmediate(function () {
@@ -275,7 +275,7 @@ class BatchNormalizationLayer extends Layer {
         { access: WebCL.MEM_WRITE_ONLY, datum: new_delta_beta },
         { access: WebCL.MEM_READ_ONLY, datum: top_delta },
         { access: WebCL.MEM_READ_ONLY, datum: this.tmp_x_normalized },
-        { access: WebCL.MEM_READ_ONLY, datum: this.tmp_std },
+        { access: WebCL.MEM_READ_ONLY, datum: this.tmp_inv_std },
         { access: WebCL.MEM_READ_ONLY, datum: this.gamma },
         { access: WebCL.MEM_READ_ONLY, datum: this.delta_gamma },
         { access: WebCL.MEM_READ_ONLY, datum: this.delta_beta },
@@ -305,7 +305,7 @@ class BatchNormalizationLayer extends Layer {
       var new_delta_gamma = $M.plus(this.delta_gamma, delta_gamma);
       var new_delta_beta = $M.plus(this.delta_beta, delta_beta);
 
-      var gamma_div_std = $M.rdivide(this.gamma, this.tmp_std);
+      var gamma_div_std = $M.times(this.gamma, this.tmp_inv_std);
       var tmp = $M.plus($M.times(this.tmp_x_normalized, $M.repmat(delta_gamma, 1, n)),
         $M.repmat(delta_beta, 1, n));
       tmp = $M.times(tmp, 1 / n);
@@ -335,9 +335,9 @@ class BatchNormalizationLayer extends Layer {
       this.tmp_x_normalized.destruct();
       this.tmp_x_normalized = null;
     }
-    if (this.tmp_std) {
-      this.tmp_std.destruct();
-      this.tmp_std = null;
+    if (this.tmp_inv_std) {
+      this.tmp_inv_std.destruct();
+      this.tmp_inv_std = null;
     }
   }
 
