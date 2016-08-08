@@ -54,7 +54,7 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
     }
     net.layer_time = {};
     var opt = new OptimizerSGD(net, 1e-3);
-    var batch_size = 10;
+    var batch_size = 128;
 
     if (load_weight) {
       console.log('loading net');

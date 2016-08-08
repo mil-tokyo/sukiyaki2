@@ -149,27 +149,55 @@ def pool5_prediction(in_name, in_channels):
         "inputs": ["fc1000", "label"], "outputs": ["accuracy"], "phase": ["test"] })
     return layers
 
-def main():
+def main(n):
     layers = []
     layers.extend(data_layer())
     layers.extend(conv1())
     layers.extend(block_a("pool1", "res2a_relu", "2a", 64, 256, 64, 1))
-    layers.extend(block_b("res2a_relu", "res2b_relu", "2b", 256, 256, 64, 1))
-    layers.extend(block_b("res2b_relu", "res2c_relu", "2c", 256, 256, 64, 1))
-    layers.extend(block_a("res2c_relu", "res3a_relu", "3a", 256, 512, 128, 2))
-    layers.extend(block_b("res3a_relu", "res3b_relu", "3b", 512, 512, 128, 1))
-    layers.extend(block_b("res3b_relu", "res3c_relu", "3c", 512, 512, 128, 1))
-    layers.extend(block_a("res3c_relu", "res4a_relu", "4a", 512, 1024, 256, 2))
-    layers.extend(block_b("res4a_relu", "res4b_relu", "4b", 1024, 1024, 256, 1))
-    layers.extend(block_b("res4b_relu", "res4c_relu", "4c", 1024, 1024, 256, 1))
-    layers.extend(block_b("res4c_relu", "res4d_relu", "4d", 1024, 1024, 256, 1))
-    layers.extend(block_b("res4d_relu", "res4e_relu", "4e", 1024, 1024, 256, 1))
-    layers.extend(block_b("res4e_relu", "res4f_relu", "4f", 1024, 1024, 256, 1))
-    layers.extend(block_a("res4f_relu", "res5a_relu", "5a", 1024, 2048, 512, 2))
-    layers.extend(block_b("res5a_relu", "res5b_relu", "5b", 2048, 2048, 512, 1))
-    layers.extend(block_b("res5b_relu", "res5c_relu", "5c", 2048, 2048, 512, 1))
-    layers.extend(pool5_prediction("res5c_relu", 2048))
-    with open("resnet50.json", "wb") as f:
+    last_block_output = "res2a_relu"
+
+    if n == 50 or n == 101 or n == 152:
+        block_list = [("res2b_relu", "2b"), ("res2c_relu", "2c")]
+    for output_name, block_name in block_list:
+        layers.extend(block_b(last_block_output, output_name, block_name, 256, 256, 64, 1))
+        last_block_output = output_name
+
+    layers.extend(block_a(last_block_output, "res3a_relu", "3a", 256, 512, 128, 2))
+    last_block_output = "res3a_relu"
+    if n == 50:
+        block_list = [("res3b_relu", "3b"), ("res3c_relu", "3c")]
+    elif n == 101:
+        block_list = [("res3b"+c+"_relu", "3b"+c) for c in "123"]
+    elif n == 152:
+        block_list = [("res3b"+c+"_relu", "3b"+c) for c in "1234567"]
+    for output_name, block_name in block_list:
+        layers.extend(block_b(last_block_output, output_name, block_name, 512, 512, 128, 1))
+        last_block_output = output_name
+
+    layers.extend(block_a(last_block_output, "res4a_relu", "4a", 512, 1024, 256, 2))
+    last_block_output = "res4a_relu"
+    if n == 50:
+        block_list = [("res4"+c+"_relu", "4"+c) for c in "bcdef"]
+    elif n == 101:
+        block_list = [("res4b"+str(c)+"_relu", "4b"+str(c)) for c in range(1, 23)]#1 to 22
+    elif n == 152:
+        block_list = [("res4b"+str(c)+"_relu", "4b"+str(c)) for c in range(1, 36)]#1 to 35
+    for output_name, block_name in block_list:
+        layers.extend(block_b(last_block_output, output_name, block_name, 1024, 1024, 256, 1))
+        last_block_output = output_name
+
+    layers.extend(block_a(last_block_output, "res5a_relu", "5a", 1024, 2048, 512, 2))
+    last_block_output = "res5a_relu"
+    if n == 50 or n == 101 or n == 152:
+        block_list = [("res5"+c+"_relu", "5"+c) for c in "bc"]
+    for output_name, block_name in block_list:
+        layers.extend(block_b(last_block_output, output_name, block_name, 2048, 2048, 512, 1))
+        last_block_output = output_name
+
+    layers.extend(pool5_prediction(last_block_output, 2048))
+    with open("resnet"+str(n)+".json", "wb") as f:
         json.dump(layers, f, indent = 2)
 
-main()
+main(50)
+main(101)
+main(152)

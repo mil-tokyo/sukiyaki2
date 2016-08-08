@@ -38,11 +38,19 @@ class LinearLayer extends Layer {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     var data_orig_shape = $M.size(data);
+    console.log('data shape: ' + $M.sizejsa(data));
     // convert to 2d with keeping batch length (flatten in fortran-order)
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
     //batch: [dim, sample]
     var top = $M.autodestruct(() => {
-      var output = $M.mtimes($M.t(this.weight), data);
+      $M.CL.finish();
+      console.log('before T ', Date.now());
+      var w_t = $M.t(this.weight);
+      $M.CL.finish();
+      console.log('after T ', Date.now());
+      var output = $M.mtimes(w_t, data);
+      $M.CL.finish();
+      console.log('after mtimes ', Date.now());
       var output_with_bias = $M.plus(output, $M.repmat(this.bias, 1, $M.sizejsa(data)[1]));
       return output_with_bias;
     });

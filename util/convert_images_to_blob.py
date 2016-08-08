@@ -14,7 +14,7 @@ from PIL import Image
 import json
 
 IMAGE_RESIZE_SIZE = (256, 256)
-IMAGE_CROP_SIZE = (227, 227)
+IMAGE_CROP_SIZE = (224, 224)
 MEAN_IMAGE = np.load("mean.npy")
 
 def read_image_list(path):

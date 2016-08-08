@@ -2,6 +2,7 @@ import $M = require('milsushi2');
 import Layer = require('./layer');
 import ForwardConfiguration = require('../forward_configuration');
 import im2col = require('../utils/im2col');
+import ArrayHelper = require('../utils/array_helper');
 
 class Convolution2DLayer extends Layer {
   weight: $M.Matrix;
@@ -19,9 +20,9 @@ class Convolution2DLayer extends Layer {
     this.need_update = true;
     this.in_size = params.in_size;
     this.out_size = params.out_size;
-    this.ksize = params.ksize;//kernel size [3,3]
-    this.stride = params.stride;
-    this.pad = params.pad;
+    this.ksize = ArrayHelper.repeat_scalar(params.ksize, 2);//kernel size [3,3]
+    this.stride = ArrayHelper.repeat_scalar(params.stride, 2);
+    this.pad = ArrayHelper.repeat_scalar(params.pad, 2);
     this.weight = $M.times(
       $M.randn(this.ksize[0], this.ksize[1], this.in_size, this.out_size),
       1.0 / Math.sqrt(this.ksize[0] * this.ksize[1] * this.in_size));

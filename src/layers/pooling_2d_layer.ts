@@ -2,6 +2,7 @@ import $M = require('milsushi2');
 import ForwardConfiguration = require('../forward_configuration');
 import Layer = require('./layer');
 import im2col = require('../utils/im2col');
+import ArrayHelper = require('../utils/array_helper');
 
 var max_pooling_backward_gpu_kernel: any = null;
 
@@ -15,9 +16,9 @@ class Pooling2DLayer extends Layer {
     super();
 
     this.pooling_type = params.type;
-    this.ksize = params.ksize;//kernel size [3,3]
-    this.stride = params.stride;
-    this.pad = params.pad;
+    this.ksize = ArrayHelper.repeat_scalar(params.ksize, 2);//kernel size [3,3]
+    this.stride = ArrayHelper.repeat_scalar(params.stride, 2);
+    this.pad = ArrayHelper.repeat_scalar(params.pad, 2);
     switch (this.pooling_type) {
       case 'max':
         this.forward = this.forward_max;

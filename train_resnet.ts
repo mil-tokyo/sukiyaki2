@@ -9,7 +9,7 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
   if (cl) {
     $M.initcl();
   }
-  var layers = JSON.parse(fs.readFileSync('netdef/resnet50.json', 'utf8'));
+  var layers = JSON.parse(fs.readFileSync('netdef/resnet152.json', 'utf8'));
   var net = new Network(layers);
   net.init(() => {
     if (cl) {
@@ -67,7 +67,7 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
     var validation = () => {
       console.log("validation at iteration " + iter);
       net.phase = "test";
-      var input_vars: { [index: string]: $M.Matrix } = { 'batch': $M.jsa2mat([1, 100]) };
+      var input_vars: { [index: string]: $M.Matrix } = { 'batch': $M.jsa2mat([1, 16]) };
       net.forward(input_vars, () => {
         var acc = net.blobs_forward['accuracy'].get();
         console.log('accuracy ' + acc);

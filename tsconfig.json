@@ -9,6 +9,7 @@
   "files": [
     "main.ts",
     "train_imagenet.ts",
+    "train_resnet.ts",
     "spec/sukiyaki.spec.ts",
     "typings/index.d.ts"
   ],
