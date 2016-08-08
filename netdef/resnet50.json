@@ -1,0 +1,2649 @@
+[
+  {
+    "inputs": [
+      "batch"
+    ], 
+    "name": "d_train", 
+    "outputs": [
+      "data", 
+      "label"
+    ], 
+    "params": {
+      "data_shape": [
+        224, 
+        224, 
+        3
+      ], 
+      "file_prefix": "imagenet224/train_100k"
+    }, 
+    "phase": [
+      "train"
+    ], 
+    "type": "blob_data"
+  }, 
+  {
+    "inputs": [
+      "batch"
+    ], 
+    "name": "d_test", 
+    "outputs": [
+      "data", 
+      "label"
+    ], 
+    "params": {
+      "data_shape": [
+        224, 
+        224, 
+        3
+      ], 
+      "file_prefix": "imagenet224/val"
+    }, 
+    "phase": [
+      "test"
+    ], 
+    "type": "blob_data"
+  }, 
+  {
+    "inputs": [
+      "data"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv1", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 3, 
+      "ksize": 7, 
+      "out_size": 64, 
+      "in_size": 3
+    }, 
+    "outputs": [
+      "conv1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv1"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn_conv1", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn_conv1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn_conv1"
+    ], 
+    "type": "relu", 
+    "name": "conv1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv1_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool1", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 3
+    }, 
+    "outputs": [
+      "pool1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool1"
+    ], 
+    "type": "branch", 
+    "name": "branch2a", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch2a_branch1", 
+      "branch2a_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2a_branch1"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2a_branch1", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch1"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2a_branch1", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2a_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2a_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 64, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2a_branch2a", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2a_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res2a_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2a_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2a_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 64, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2a_branch2b", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2a_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res2a_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2a_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2a_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2a_branch2c", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2a_branch1", 
+      "bn2a_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res2a", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a"
+    ], 
+    "type": "relu", 
+    "name": "res2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2a_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch2b", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch2b_branch1", 
+      "branch2b_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2b_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2b_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 64, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res2b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2b_branch2a", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2b_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res2b_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2b_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2b_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 64, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2b_branch2b", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2b_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res2b_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2b_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2b_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2b_branch2c", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2b_branch1", 
+      "bn2b_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res2b", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b"
+    ], 
+    "type": "relu", 
+    "name": "res2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2b_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch2c", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch2c_branch1", 
+      "branch2c_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2c_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2c_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 64, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res2c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2c_branch2a", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2c_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res2c_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2c_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2c_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 64, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2c_branch2b", 
+    "params": {
+      "in_size": 64, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn2c_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res2c_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2c_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res2c_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "res2c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn2c_branch2c", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn2c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch2c_branch1", 
+      "bn2c_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res2c", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c"
+    ], 
+    "type": "relu", 
+    "name": "res2c_relu", 
+    "params": {}, 
+    "outputs": [
+      "res2c_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res2c_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch3a", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch3a_branch1", 
+      "branch3a_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3a_branch1"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3a_branch1", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res3a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch1"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3a_branch1", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3a_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3a_branch2a", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 128, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res3a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3a_branch2a", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3a_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res3a_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3a_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3a_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 128, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3a_branch2b", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3a_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res3a_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3a_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3a_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3a_branch2c", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3a_branch1", 
+      "bn3a_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res3a", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res3a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a"
+    ], 
+    "type": "relu", 
+    "name": "res3a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3a_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch3b", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch3b_branch1", 
+      "branch3b_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3b_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3b_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 128, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res3b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3b_branch2a", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3b_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res3b_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3b_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3b_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 128, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3b_branch2b", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3b_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res3b_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3b_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3b_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3b_branch2c", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3b_branch1", 
+      "bn3b_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res3b", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res3b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b"
+    ], 
+    "type": "relu", 
+    "name": "res3b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3b_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch3c", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch3c_branch1", 
+      "branch3c_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3c_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3c_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 128, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res3c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3c_branch2a", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3c_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res3c_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3c_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3c_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 128, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3c_branch2b", 
+    "params": {
+      "in_size": 128, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn3c_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res3c_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3c_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res3c_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "res3c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn3c_branch2c", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn3c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch3c_branch1", 
+      "bn3c_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res3c", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res3c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c"
+    ], 
+    "type": "relu", 
+    "name": "res3c_relu", 
+    "params": {}, 
+    "outputs": [
+      "res3c_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res3c_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4a", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4a_branch1", 
+      "branch4a_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4a_branch1"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4a_branch1", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res4a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch1"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4a_branch1", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4a_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4a_branch2a", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res4a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4a_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4a_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4a_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4a_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4a_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4a_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4a_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4a_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4a_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4a_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4a_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4a_branch1", 
+      "bn4a_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4a", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a"
+    ], 
+    "type": "relu", 
+    "name": "res4a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4a_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4b", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4b_branch1", 
+      "branch4b_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4b_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4b_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res4b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4b_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4b_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4b_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4b_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4b_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4b_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4b_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4b_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4b_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4b_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4b_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4b_branch1", 
+      "bn4b_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4b", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b"
+    ], 
+    "type": "relu", 
+    "name": "res4b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4b_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4c", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4c_branch1", 
+      "branch4c_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4c_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4c_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res4c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4c_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4c_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4c_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4c_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4c_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4c_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4c_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4c_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4c_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4c_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4c_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4c_branch1", 
+      "bn4c_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4c", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c"
+    ], 
+    "type": "relu", 
+    "name": "res4c_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4c_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4c_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4d", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4d_branch1", 
+      "branch4d_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4d_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4d_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res4d_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4d_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4d_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4d_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4d_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4d_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4d_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4d_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4d_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4d_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4d_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4d_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4d_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4d_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4d_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4d_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4d_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4d_branch1", 
+      "bn4d_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4d", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4d"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d"
+    ], 
+    "type": "relu", 
+    "name": "res4d_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4d_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4d_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4e", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4e_branch1", 
+      "branch4e_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4e_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4e_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res4e_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4e_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4e_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4e_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4e_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4e_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4e_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4e_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4e_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4e_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4e_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4e_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4e_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4e_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4e_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4e_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4e_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4e_branch1", 
+      "bn4e_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4e", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4e"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e"
+    ], 
+    "type": "relu", 
+    "name": "res4e_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4e_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4e_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch4f", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch4f_branch1", 
+      "branch4f_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4f_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4f_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 256, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res4f_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4f_branch2a", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4f_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4f_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res4f_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4f_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4f_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4f_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4f_branch2b", 
+    "params": {
+      "in_size": 256, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4f_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn4f_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res4f_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4f_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res4f_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 1024, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "res4f_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn4f_branch2c", 
+    "params": {
+      "in_size": 1024, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn4f_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch4f_branch1", 
+      "bn4f_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res4f", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res4f"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f"
+    ], 
+    "type": "relu", 
+    "name": "res4f_relu", 
+    "params": {}, 
+    "outputs": [
+      "res4f_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res4f_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch5a", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch5a_branch1", 
+      "branch5a_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5a_branch1"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5a_branch1", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 2048, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res5a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch1"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5a_branch1", 
+    "params": {
+      "in_size": 2048, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5a_branch1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5a_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5a_branch2a", 
+    "params": {
+      "stride": 2, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 1024
+    }, 
+    "outputs": [
+      "res5a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5a_branch2a", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5a_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5a_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res5a_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5a_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5a_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5a_branch2b", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5a_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5a_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res5a_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5a_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5a_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 2048, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5a_branch2c", 
+    "params": {
+      "in_size": 2048, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5a_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5a_branch1", 
+      "bn5a_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res5a", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res5a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a"
+    ], 
+    "type": "relu", 
+    "name": "res5a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5a_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch5b", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch5b_branch1", 
+      "branch5b_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5b_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5b_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 2048
+    }, 
+    "outputs": [
+      "res5b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5b_branch2a", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5b_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5b_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res5b_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5b_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5b_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5b_branch2b", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5b_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5b_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res5b_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5b_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5b_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 2048, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5b_branch2c", 
+    "params": {
+      "in_size": 2048, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5b_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5b_branch1", 
+      "bn5b_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res5b", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res5b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b"
+    ], 
+    "type": "relu", 
+    "name": "res5b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5b_relu"
+    ], 
+    "type": "branch", 
+    "name": "branch5c", 
+    "params": {
+      "n_output": 2
+    }, 
+    "outputs": [
+      "branch5c_branch1", 
+      "branch5c_branch2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5c_branch2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5c_branch2a", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 512, 
+      "in_size": 2048
+    }, 
+    "outputs": [
+      "res5c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_branch2a"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5c_branch2a", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5c_branch2a"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5c_branch2a"
+    ], 
+    "type": "relu", 
+    "name": "res5c_branch2a_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5c_branch2a_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_branch2a_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5c_branch2b", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_branch2b"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5c_branch2b", 
+    "params": {
+      "in_size": 512, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5c_branch2b"
+    ]
+  }, 
+  {
+    "inputs": [
+      "bn5c_branch2b"
+    ], 
+    "type": "relu", 
+    "name": "res5c_branch2b_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5c_branch2b_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_branch2b_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "res5c_branch2c", 
+    "params": {
+      "stride": 1, 
+      "bias": false, 
+      "pad": 0, 
+      "ksize": 1, 
+      "out_size": 2048, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "res5c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_branch2c"
+    ], 
+    "type": "batch_normalization", 
+    "name": "bn5c_branch2c", 
+    "params": {
+      "in_size": 2048, 
+      "target_dim": 3
+    }, 
+    "outputs": [
+      "bn5c_branch2c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "branch5c_branch1", 
+      "bn5c_branch2c"
+    ], 
+    "type": "plus", 
+    "name": "res5c", 
+    "params": {
+      "n_input": 2
+    }, 
+    "outputs": [
+      "res5c"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c"
+    ], 
+    "type": "relu", 
+    "name": "res5c_relu", 
+    "params": {}, 
+    "outputs": [
+      "res5c_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "res5c_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool5", 
+    "params": {
+      "stride": 1, 
+      "pad": 0, 
+      "type": "average", 
+      "ksize": 7
+    }, 
+    "outputs": [
+      "pool5"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool5"
+    ], 
+    "type": "linear", 
+    "name": "fc1000", 
+    "params": {
+      "out_size": 1000, 
+      "in_shape": [
+        1, 
+        1, 
+        2048
+      ]
+    }, 
+    "outputs": [
+      "fc1000"
+    ]
+  }, 
+  {
+    "params": {}, 
+    "type": "softmax_cross_entropy", 
+    "name": "loss", 
+    "outputs": [
+      "loss"
+    ], 
+    "inputs": [
+      "fc1000", 
+      "label"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc1000", 
+      "label"
+    ], 
+    "name": "accuracy", 
+    "outputs": [
+      "accuracy"
+    ], 
+    "params": {}, 
+    "phase": [
+      "test"
+    ], 
+    "type": "accuracy"
+  }
+]
