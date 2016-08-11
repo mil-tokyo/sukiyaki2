@@ -109,13 +109,11 @@ class Pooling2DLayer extends Layer {
             'if (i >= length) {return;}',
             'int out_y = i % out_h;',
             'int out_x = i / out_h % out_w;',
-            'for (int c = 0; c < ch; c++) {',
-            '  for (int batch = 0; batch < n; batch++) {',
-            '    int top_pos_val = top_pos[out_y + (out_x + (c + batch * ch) * out_w) * out_h] - 1;',
-            '    float top_delta_val = top_delta[out_y + (out_x + (c + batch * ch) * out_w) * out_h];',
-            '    delta_col[out_y + (out_x + (top_pos_val + (c + (batch) * ch) * khxkw) * out_w) * out_h] = top_delta_val;',
-            '  }',
-            '}',
+            'int c = i / (out_h * out_w) % ch;',
+            'int batch = i / (out_h * out_w * ch) % n;',
+            'int top_pos_val = top_pos[i] - 1;',
+            'float top_delta_val = top_delta[i];',
+            'delta_col[out_y + (out_x + (top_pos_val + (c + (batch) * ch) * khxkw) * out_w) * out_h] = top_delta_val;',
             '}'
           ].join('\n'));
         }
@@ -130,8 +128,8 @@ class Pooling2DLayer extends Layer {
           { datum: this.ksize[0] * this.ksize[1], type: WebCL.type.INT },
           { datum: in_size, type: WebCL.type.INT },
           { datum: n, type: WebCL.type.INT },
-          { datum: out_h * out_w, type: WebCL.type.UINT }
-        ], out_h * out_w);
+          { datum: out_h * out_w * in_size * n, type: WebCL.type.UINT }
+        ], out_h * out_w * in_size * n);
         delta_col.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], in_size, n);
         bottom_delta = im2col.col2im_cl(delta_col, this.stride, this.pad, [$M.size(bottom, 1), $M.size(bottom, 2)]);
       } else {
