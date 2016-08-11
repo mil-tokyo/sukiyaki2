@@ -121,7 +121,7 @@ export function im2col_cl(img: $M.Matrix, ksize: number[], stride: number[], pad
 
 var im2col_perm_gpu_kernel: any = null;
 
-export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[], pad: number[], pad_val: number = 0, cover_all: boolean = false): $M.Matrix {
+export function im2col_cl_perm2(img: $M.Matrix, ksize: number[], stride: number[], pad: number[], pad_val: number = 0, cover_all: boolean = false): $M.Matrix {
   var h: number, w: number, c: number, n: number;
   var img_size = $M.sizejsa(img);
   h = img_size[0];
@@ -189,6 +189,153 @@ export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[]
     { datum: pad_val, type: WebCL.type.FLOAT },
     { datum: out_h * out_w * kh * kw * c, type: WebCL.type.UINT }
   ], out_h * out_w * kh * kw * c, out_h);
+
+  return col;
+}
+export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[], pad: number[], pad_val: number = 0, cover_all: boolean = false): $M.Matrix {
+  var h: number, w: number, c: number, n: number;
+  var img_size = $M.sizejsa(img);
+  h = img_size[0];
+  w = img_size[1];
+  c = img_size[2] || 1;//maybe img_size.length < 4
+  n = img_size[3] || 1;
+
+  var [kh, kw] = ksize;
+  var [sy, sx] = stride;
+  var [ph, pw] = pad;
+
+  var out_h = conv_outsize(h, kh, sy, ph, cover_all);
+  var out_w = conv_outsize(w, kw, sx, pw, cover_all);
+
+  var col = new $M.CL.MatrixCL([out_h, out_w, n, kh, kw, c], 'single');
+  //var col = $M.zeros(out_h, out_w, n, kh, kw, c, 'gpuArray');
+
+  if (!im2col_perm_gpu_kernel) {
+    im2col_perm_gpu_kernel = $M.CL.createKernel([
+      '__kernel void kernel_func(__global float *col, __global float *img,',
+      'int out_h, int out_w, int kh, int kw, int sy, int sx, int ph, int pw, int ch, int n, int h, int w, float pad_val, uint length)',
+      '{',
+      'uint i = get_global_id(0);',
+      'if (i >= length) {return;}',
+      'int out_y = i % out_h;',
+      'int out_x = i / out_h % out_w;',
+      //'int ky = i / (out_h * out_w) % kh;',
+      //'int kx = i / (out_h * out_w * kh) % kw;',
+      'int c = i / (out_h * out_w) % ch;',
+      'int batch = i / (out_h * out_w * ch) % n;',
+      'for (int kx = 0; kx < kw; kx++) {',
+      'for (int ky = 0; ky < kh; ky++) {',
+      'int iny = ky + out_y * sy - ph;',
+      'int inx = kx + out_x * sx - pw;',
+      'if (iny < 0 || iny >= h || inx < 0 || inx >= w) {',
+      //'for (int c = 0; c < ch; c++) {',
+      //'  for (int batch = 0; batch < n; batch++) {',
+      '    col[out_y + (out_x + (batch + (ky + (kx + (c) * kw) * kh) * n) * out_w) * out_h] = pad_val;',
+      //'  }',
+      //'}',
+      '} else {',
+      //'for (int c = 0; c < ch; c++) {',
+      //'  for (int batch = 0; batch < n; batch++) {',
+      '    col[out_y + (out_x + (batch + (ky + (kx + (c) * kw) * kh) * n) * out_w) * out_h] = img[iny + (inx + (c + (batch) * ch) * w) * h];',
+      //'  }',
+      '}',
+      '}',
+      '}',
+      //'}',
+      '}'
+    ].join('\n'));
+  }
+
+  var WebCL = $M.CL.WebCL;
+  $M.CL.executeKernel(im2col_perm_gpu_kernel, [
+    { access: WebCL.MEM_WRITE_ONLY, datum: col },
+    { access: WebCL.MEM_READ_ONLY, datum: img },
+    { datum: out_h, type: WebCL.type.INT },
+    { datum: out_w, type: WebCL.type.INT },
+    { datum: kh, type: WebCL.type.INT },
+    { datum: kw, type: WebCL.type.INT },
+    { datum: sy, type: WebCL.type.INT },
+    { datum: sx, type: WebCL.type.INT },
+    { datum: ph, type: WebCL.type.INT },
+    { datum: pw, type: WebCL.type.INT },
+    { datum: c, type: WebCL.type.INT },
+    { datum: n, type: WebCL.type.INT },
+    { datum: h, type: WebCL.type.INT },
+    { datum: w, type: WebCL.type.INT },
+    { datum: pad_val, type: WebCL.type.FLOAT },
+    { datum: out_h * out_w * c * n, type: WebCL.type.UINT }
+  ], out_h * out_w * c * n, out_h);
+
+  return col;
+}
+export function im2col_cl_permx(img: $M.Matrix, ksize: number[], stride: number[], pad: number[], pad_val: number = 0, cover_all: boolean = false): $M.Matrix {
+  var h: number, w: number, c: number, n: number;
+  var img_size = $M.sizejsa(img);
+  h = img_size[0];
+  w = img_size[1];
+  c = img_size[2] || 1;//maybe img_size.length < 4
+  n = img_size[3] || 1;
+
+  var [kh, kw] = ksize;
+  var [sy, sx] = stride;
+  var [ph, pw] = pad;
+
+  var out_h = conv_outsize(h, kh, sy, ph, cover_all);
+  var out_w = conv_outsize(w, kw, sx, pw, cover_all);
+
+  //var col = new $M.CL.MatrixCL([out_h, out_w, n, kh, kw, c], 'single');
+  var col = $M.zeros(out_h, out_w, n, kh, kw, c, 'gpuArray');
+
+  if (!im2col_perm_gpu_kernel) {
+    im2col_perm_gpu_kernel = $M.CL.createKernel([
+      '__kernel void kernel_func(__global float *col, __global float *img,',
+      'int out_h, int out_w, int kh, int kw, int sy, int sx, int ph, int pw, int ch, int n, int h, int w, float pad_val, uint length)',
+      '{',
+      'uint i = get_global_id(0);',
+      'if (i >= length) {return;}',
+      'int iny = i % h;',
+      'int inx = i / h % w;',
+      //'int ky = i / (out_h * out_w) % kh;',
+      //'int kx = i / (out_h * out_w * kh) % kw;',
+      'int c = i / (h * w) % ch;',
+      'int batch = i / (h * w * ch) % n;',
+      'for (int kx = 0; kx < kw; kx++) {',
+      'int out_x = kx - pw - inx;',
+      'if (out_x % sx) {continue;}',
+      'out_x /= sx;',
+      'if (out_x < 0 || out_x >= out_w) {continue;}',
+      'for (int ky = 0; ky < kh; ky++) {',
+      'int out_y = ky - ph - iny;',
+      'if (out_y % sy) {continue;}',
+      'out_y /= sy;',
+      'if (out_y < 0 || out_y >= out_h) {continue;}',
+      '    col[out_y + (out_x + (batch + (ky + (kx + (c) * kw) * kh) * n) * out_w) * out_h] = img[i];',
+      '}',
+      '}',
+      //'}',
+      '}'
+    ].join('\n'));
+  }
+
+  var WebCL = $M.CL.WebCL;
+  $M.CL.executeKernel(im2col_perm_gpu_kernel, [
+    { access: WebCL.MEM_WRITE_ONLY, datum: col },
+    { access: WebCL.MEM_READ_ONLY, datum: img },
+    { datum: out_h, type: WebCL.type.INT },
+    { datum: out_w, type: WebCL.type.INT },
+    { datum: kh, type: WebCL.type.INT },
+    { datum: kw, type: WebCL.type.INT },
+    { datum: sy, type: WebCL.type.INT },
+    { datum: sx, type: WebCL.type.INT },
+    { datum: ph, type: WebCL.type.INT },
+    { datum: pw, type: WebCL.type.INT },
+    { datum: c, type: WebCL.type.INT },
+    { datum: n, type: WebCL.type.INT },
+    { datum: h, type: WebCL.type.INT },
+    { datum: w, type: WebCL.type.INT },
+    { datum: pad_val, type: WebCL.type.FLOAT },
+    { datum: h * w * c * n, type: WebCL.type.UINT }
+  ], h * w * c * n, h);
 
   return col;
 }
