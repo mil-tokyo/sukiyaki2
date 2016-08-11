@@ -1,6 +1,7 @@
 import $M = require('milsushi2');
 import Layer = require('./layer');
 import ForwardConfiguration = require('../forward_configuration');
+import mtimes_trans = require('../utils/mtimes_trans');
 
 class LinearLayer extends Layer {
   weight: $M.Matrix;
@@ -38,19 +39,11 @@ class LinearLayer extends Layer {
     //multiply input by weight
     var data: $M.Matrix = bottoms[0];
     var data_orig_shape = $M.size(data);
-    console.log('data shape: ' + $M.sizejsa(data));
     // convert to 2d with keeping batch length (flatten in fortran-order)
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
     //batch: [dim, sample]
     var top = $M.autodestruct(() => {
-      $M.CL.finish();
-      console.log('before T ', Date.now());
-      var w_t = $M.t(this.weight);
-      $M.CL.finish();
-      console.log('after T ', Date.now());
-      var output = $M.mtimes(w_t, data);
-      $M.CL.finish();
-      console.log('after mtimes ', Date.now());
+      var output = mtimes_trans.mtimes_trans(this.weight, data, true, false);
       var output_with_bias = $M.plus(output, $M.repmat(this.bias, 1, $M.sizejsa(data)[1]));
       return output_with_bias;
     });
@@ -84,10 +77,10 @@ class LinearLayer extends Layer {
     var data_orig_shape = $M.size(data);
     data.reshape_inplace(-1, $M.size(data, this.in_shape.length + 1));
 
-    var new_delta_weight = $M.autodestruct(() => {
-      var delta_weight = $M.mtimes(data, $M.t(top_delta));
-      return $M.plus(this.delta_weight, delta_weight);
-    });
+    var delta_weight = mtimes_trans.mtimes_trans(data, top_delta, false, true);
+    var new_delta_weight = $M.plus(this.delta_weight, delta_weight);
+    delta_weight.destruct();
+
     this.delta_weight.destruct();
     this.delta_weight = new_delta_weight;
     var new_delta_bias = $M.autodestruct(() => {
