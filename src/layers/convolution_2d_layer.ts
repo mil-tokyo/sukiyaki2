@@ -169,12 +169,9 @@ class Convolution2DLayer extends Layer {
       top_delta_perm.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
       var delta_col_perm = $M.mtimes(top_delta_perm, weight_t);
-      delta_col_perm.reshape_inplace(out_h * out_w, n, -1);
-      this._start_timer('permute_delta_col');
-      var delta_col = $M.permute(delta_col_perm, [1, 3, 2]);
-      delta_col.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, n);
-      this._start_timer('col2im');
-      var output = im2col.col2im_cl(delta_col, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
+      delta_col_perm.reshape_inplace(out_h, out_w, n, this.ksize[0], this.ksize[1], this.in_size);
+      this._start_timer('col2im_perm');
+      var output = im2col.col2im_cl_perm(delta_col_perm, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
       this._stop_timer();
       console.log('#backward times');
       this._show_timer();
