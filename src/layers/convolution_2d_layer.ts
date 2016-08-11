@@ -241,15 +241,14 @@ class Convolution2DLayer extends Layer {
       //     delta_weight_b.destruct();
       //   }
       // }
-      this._start_timer('im2col');
-      var col = im2col.im2col_cl(data, this.ksize, this.stride, this.pad);
-         var col_shape = $M.sizejsa(col);
+      this._start_timer('im2col_perm');
+      var col_permute = im2col.im2col_cl_perm(data, this.ksize, this.stride, this.pad);
+         var col_shape = $M.sizejsa(col_permute);
          var out_h = col_shape[0];
          var out_w = col_shape[1];
-         col.reshape_inplace(out_h * out_w, -1, n);
-      this._start_timer('permute_col_t');
-         var col_permute = $M.permute(col, [2, 1, 3]);
-         col_permute.reshape_inplace(-1, out_h * out_w * n);
+         col_permute.reshape_inplace(out_h * out_w * n, -1);
+      this._start_timer('permute_col_t ' + $M.sizejsa(col_permute));
+         var col_permute_t = $M.t(col_permute);
       var top_delta_shape = $M.sizejsa(top_delta);
          var out_h = top_delta_shape[0];
          var out_w = top_delta_shape[1];
@@ -259,7 +258,7 @@ class Convolution2DLayer extends Layer {
       top_delta.reshape_inplace(top_delta_shape);
       top_delta_perm.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
-      output = $M.mtimes(col_permute, top_delta_perm);
+      output = $M.mtimes(col_permute_t, top_delta_perm);
       this._stop_timer();
       console.log('#update times');
       this._show_timer();
