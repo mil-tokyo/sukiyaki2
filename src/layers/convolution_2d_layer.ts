@@ -2,6 +2,7 @@ import $M = require('milsushi2');
 import Layer = require('./layer');
 import ForwardConfiguration = require('../forward_configuration');
 import im2col = require('../utils/im2col');
+import mtimes_trans = require('../utils/mtimes_trans');
 import ArrayHelper = require('../utils/array_helper');
 
 class Convolution2DLayer extends Layer {
@@ -157,8 +158,7 @@ class Convolution2DLayer extends Layer {
       var weight_origsize_jsa = $M.sizejsa(this.weight);
       this.weight.reshape_inplace(-1, this.out_size);
       this._start_timer('transpose_weight');
-      var weight_t = $M.t(this.weight);
-      this.weight.reshape_inplace(weight_origsize_jsa);
+      //var weight_t = $M.t(this.weight);
       var top_delta_shape = $M.sizejsa(top_delta);
          var out_h = top_delta_shape[0];
          var out_w = top_delta_shape[1];
@@ -168,7 +168,9 @@ class Convolution2DLayer extends Layer {
       top_delta.reshape_inplace(top_delta_shape);
       top_delta_perm.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
-      var delta_col_perm = $M.mtimes(top_delta_perm, weight_t);
+      //var delta_col_perm = $M.mtimes(top_delta_perm, weight_t);
+      var delta_col_perm = mtimes_trans.mtimes_trans(top_delta_perm, this.weight, false, true);
+      this.weight.reshape_inplace(weight_origsize_jsa);
       delta_col_perm.reshape_inplace(out_h, out_w, n, this.ksize[0], this.ksize[1], this.in_size);
       this._start_timer('col2im_perm');
       var output = im2col.col2im_cl_perm(delta_col_perm, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
@@ -248,7 +250,7 @@ class Convolution2DLayer extends Layer {
          var out_w = col_shape[1];
          col_permute.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('permute_col_t ' + $M.sizejsa(col_permute));
-         var col_permute_t = $M.t(col_permute);
+         //var col_permute_t = $M.t(col_permute);
       var top_delta_shape = $M.sizejsa(top_delta);
          var out_h = top_delta_shape[0];
          var out_w = top_delta_shape[1];
@@ -258,7 +260,8 @@ class Convolution2DLayer extends Layer {
       top_delta.reshape_inplace(top_delta_shape);
       top_delta_perm.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
-      output = $M.mtimes(col_permute_t, top_delta_perm);
+      //output = $M.mtimes(col_permute_t, top_delta_perm);
+      output = mtimes_trans.mtimes_trans(col_permute, top_delta_perm, true, false);
       this._stop_timer();
       console.log('#update times');
       this._show_timer();
