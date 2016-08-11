@@ -47,31 +47,38 @@ class Convolution2DLayer extends Layer {
   }
 
   timer_begin: number;
-  timer_vals: {[index:string]:number};
+  timer_vals: { [index: string]: number };
   timer_name: string;
   _start_timer(name: string) {
-    if (this.timer_begin) {
-      this._stop_timer();
-    } else {
-      $M.CL.finish();
+    if (true) {
+      if (this.timer_begin) {
+        this._stop_timer();
+      } else {
+        $M.CL.finish();
+      }
+      this.timer_name = name;
+      this.timer_begin = Date.now();
+
     }
-    this.timer_name = name;
-    this.timer_begin = Date.now();
   }
 
   _stop_timer() {
-    $M.CL.finish();
-    var end_time = Date.now();
-    var time_ms = end_time - this.timer_begin;
-    this.timer_vals[this.timer_name] = (this.timer_vals[this.timer_name] || 0) + time_ms;
-    this.timer_begin = null;
+    if (true) {
+      $M.CL.finish();
+      var end_time = Date.now();
+      var time_ms = end_time - this.timer_begin;
+      this.timer_vals[this.timer_name] = (this.timer_vals[this.timer_name] || 0) + time_ms;
+      this.timer_begin = null;
+    }
   }
 
   _show_timer() {
-    for (var key in this.timer_vals) {
-      if (this.timer_vals.hasOwnProperty(key)) {
-        var element = this.timer_vals[key];
-        console.log('' + key + ': ' + element);
+    if (true) {
+      for (var key in this.timer_vals) {
+        if (this.timer_vals.hasOwnProperty(key)) {
+          var element = this.timer_vals[key];
+          console.log('' + key + ': ' + element);
+        }
       }
     }
   }
@@ -118,22 +125,28 @@ class Convolution2DLayer extends Layer {
       // }
       this._start_timer('im2col_perm');
       var col_permute = im2col.im2col_cl_perm(data, this.ksize, this.stride, this.pad);
-         var col_shape = $M.sizejsa(col_permute);
-         var out_h = col_shape[0];
-         var out_w = col_shape[1];
-         col_permute.reshape_inplace(out_h * out_w * n, -1);
+      var col_shape = $M.sizejsa(col_permute);
+      var out_h = col_shape[0];
+      var out_w = col_shape[1];
+      col_permute.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
-         var output_b = $M.mtimes(col_permute, this.weight);
-         output_b.reshape_inplace(out_h * out_w, n, -1);
+      var output_b = $M.mtimes(col_permute, this.weight);
+      output_b.reshape_inplace(out_h * out_w, n, -1);
       this._start_timer('permute_output');
-         var output = $M.permute(output_b, [1, 3, 2]);
+      var output = $M.permute(output_b, [1, 3, 2]);
       output.reshape_inplace(out_h, out_w, this.out_size, n);
-         if (this.use_bias) {
-      this._start_timer('plus_bias');
-      this.bias.reshape_inplace(1, 1, -1);
-           var output = $M.plus(output, $M.repmat(this.bias, out_h, out_w, 1, n));
-           this.bias.reshape_inplace(-1, 1);
-         }
+      if (this.use_bias) {
+        this._start_timer('plus_bias');
+        var WebCL = $M.CL.WebCL;
+        $M.CL.executeKernel(get_forward_bias_kernel(), [
+          { access: WebCL.MEM_READ_WRITE, datum: output },
+          { access: WebCL.MEM_READ_ONLY, datum: this.bias },
+          { datum: out_h, type: WebCL.type.INT },
+          { datum: out_w, type: WebCL.type.INT },
+          { datum: this.out_size, type: WebCL.type.INT },
+          { datum: n, type: WebCL.type.INT }
+        ], output._numel);
+      }
       this._stop_timer();
       console.log('#forward times');
       this._show_timer();
@@ -160,9 +173,9 @@ class Convolution2DLayer extends Layer {
       this._start_timer('transpose_weight');
       //var weight_t = $M.t(this.weight);
       var top_delta_shape = $M.sizejsa(top_delta);
-         var out_h = top_delta_shape[0];
-         var out_w = top_delta_shape[1];
-         top_delta.reshape_inplace(out_h * out_w, -1, n);
+      var out_h = top_delta_shape[0];
+      var out_w = top_delta_shape[1];
+      top_delta.reshape_inplace(out_h * out_w, -1, n);
       this._start_timer('permute_top_delta');
       var top_delta_perm = $M.permute(top_delta, [1, 3, 2]);
       top_delta.reshape_inplace(top_delta_shape);
@@ -212,6 +225,7 @@ class Convolution2DLayer extends Layer {
   calculateUpdateParams(bottoms: $M.Matrix[], top_deltas: $M.Matrix[], config: ForwardConfiguration, callback: () => void): void {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
+    var top_delta_shape = $M.sizejsa(top_delta);
 
     this.timer_vals = {};
     var n = $M.size(data, 4);
@@ -245,16 +259,15 @@ class Convolution2DLayer extends Layer {
       // }
       this._start_timer('im2col_perm');
       var col_permute = im2col.im2col_cl_perm(data, this.ksize, this.stride, this.pad);
-         var col_shape = $M.sizejsa(col_permute);
-         var out_h = col_shape[0];
-         var out_w = col_shape[1];
-         col_permute.reshape_inplace(out_h * out_w * n, -1);
+      var col_shape = $M.sizejsa(col_permute);
+      var out_h = col_shape[0];
+      var out_w = col_shape[1];
+      col_permute.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('permute_col_t ' + $M.sizejsa(col_permute));
-         //var col_permute_t = $M.t(col_permute);
-      var top_delta_shape = $M.sizejsa(top_delta);
-         var out_h = top_delta_shape[0];
-         var out_w = top_delta_shape[1];
-         top_delta.reshape_inplace(out_h * out_w, -1, n);
+      //var col_permute_t = $M.t(col_permute);
+      var out_h = top_delta_shape[0];
+      var out_w = top_delta_shape[1];
+      top_delta.reshape_inplace(out_h * out_w, -1, n);
       this._start_timer('permute_top_delta');
       var top_delta_perm = $M.permute(top_delta, [1, 3, 2]);
       top_delta.reshape_inplace(top_delta_shape);
@@ -263,8 +276,6 @@ class Convolution2DLayer extends Layer {
       //output = $M.mtimes(col_permute_t, top_delta_perm);
       output = mtimes_trans.mtimes_trans(col_permute, top_delta_perm, true, false);
       this._stop_timer();
-      console.log('#update times');
-      this._show_timer();
       output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
       return output;
     });
@@ -274,15 +285,30 @@ class Convolution2DLayer extends Layer {
     new_delta_weight.destruct();
 
     if (this.use_bias) {
-      var new_delta_bias = $M.autodestruct(() => {
-        var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
-        td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
-        var delta_bias = $M.sum(td_permuted, 2);
-        return $M.plus(this.delta_bias, delta_bias);
-      });
-      this.delta_bias.destruct();
-      this.delta_bias = new_delta_bias;
+
+      this._start_timer('bias');
+      var WebCL = $M.CL.WebCL;
+      var group_size = 256;
+      $M.CL.executeKernel(get_update_bias_kernel(), [
+        { access: WebCL.MEM_READ_WRITE, datum: this.delta_bias },
+        { access: WebCL.MEM_READ_ONLY, datum: top_delta },
+        { datum: top_delta_shape[0] * top_delta_shape[1], type: WebCL.type.UINT },
+        { datum: top_delta_shape[2], type: WebCL.type.UINT },//channels
+        { datum: top_delta_shape[3], type: WebCL.type.UINT }
+      ], [group_size * top_delta_shape[2]], [group_size]);
+      // var new_delta_bias = $M.autodestruct(() => {
+      //   this._start_timer('bias');
+      //   var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
+      //   td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
+      //   var delta_bias = $M.sum(td_permuted, 2);
+      //   return $M.plus(this.delta_bias, delta_bias);
+      // });
+      // this.delta_bias.destruct();
+      // this.delta_bias = new_delta_bias;
+      this._stop_timer();
     }
+    console.log('#update times');
+    this._show_timer();
 
     setImmediate(function () {
       callback();
@@ -299,3 +325,52 @@ class Convolution2DLayer extends Layer {
 }
 
 export = Convolution2DLayer;
+
+var forward_bias_kernel: any = null;//in-place modification kernel
+function get_forward_bias_kernel(): any {
+  if (!forward_bias_kernel) {
+    forward_bias_kernel = $M.CL.createKernel([
+      '__kernel void kernel_func(__global float *dst, __global const float *bias, int out_h, int out_w, int ch, int n)',
+      '{',
+      'uint i = get_global_id(0);',
+      'int c = i / (out_h * out_w) % ch;',
+      'float b = bias[c];',
+      'dst[i] += b;',
+      '}'
+    ].join('\n'));
+  }
+  return forward_bias_kernel;
+}
+
+var update_bias_kernel: any = null;//in-place modification kernel
+function get_update_bias_kernel(): any {
+  if (!update_bias_kernel) {
+    // similar to batch normalization
+    update_bias_kernel = $M.CL.createKernel([
+      '#define MAX_WORK_SIZE 256',
+      '__kernel void kernel_func(__global float *delta_bias, __global const float *top_delta,',
+      'uint left_size, uint channel_size, uint right_size)',
+      '{',
+      'uint ch = get_group_id(0);',
+      'uint i = get_local_id(0);',
+      'uint work_size = get_local_size(0);',
+      '__local float node_sum[MAX_WORK_SIZE];',
+      //get sum and squared sum
+      'float local_sum = 0.0F;',
+      'for (int j = i; j < left_size * right_size; j += work_size) {',
+      '  float val = top_delta[(j % left_size) + (ch + j / left_size * channel_size) * left_size];',
+      '  local_sum += val;',
+      '}',
+      'node_sum[i] = local_sum;',
+      'barrier(CLK_LOCAL_MEM_FENCE);',
+      // calculate sum by node i==0
+      'if (i == 0) {',
+      '  for (int j = 1; j < work_size; j++) {',
+      '    local_sum += node_sum[j];',
+      '  }',
+      '  delta_bias[ch] += local_sum;',
+      '}',
+      '}'].join('\n'));
+  }
+  return update_bias_kernel;
+}
