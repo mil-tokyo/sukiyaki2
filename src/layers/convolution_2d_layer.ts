@@ -115,14 +115,11 @@ class Convolution2DLayer extends Layer {
       //   output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
       //   this._stop_timer();
       // }
-      this._start_timer('im2col');
-      var col = im2col.im2col_cl(data, this.ksize, this.stride, this.pad);
-         var col_shape = $M.sizejsa(col);
+      this._start_timer('im2col_perm');
+      var col_permute = im2col.im2col_cl_perm(data, this.ksize, this.stride, this.pad);
+         var col_shape = $M.sizejsa(col_permute);
          var out_h = col_shape[0];
          var out_w = col_shape[1];
-         col.reshape_inplace(out_h * out_w, -1, n);
-      this._start_timer('permute_col');
-         var col_permute = $M.permute(col, [1, 3, 2]);
          col_permute.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
          var output_b = $M.mtimes(col_permute, this.weight);
