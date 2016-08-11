@@ -114,7 +114,7 @@ export function im2col_cl(img: $M.Matrix, ksize: number[], stride: number[], pad
     { datum: w, type: WebCL.type.INT },
     { datum: pad_val, type: WebCL.type.FLOAT },
     { datum: out_h * out_w * kh * kw, type: WebCL.type.UINT }
-  ], out_h * out_w * kh * kw);
+  ], out_h * out_w * kh * kw, out_h);
 
   return col;
 }
@@ -136,7 +136,8 @@ export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[]
   var out_h = conv_outsize(h, kh, sy, ph, cover_all);
   var out_w = conv_outsize(w, kw, sx, pw, cover_all);
 
-  var col = $M.zeros(out_h, out_w, n, kh, kw, c, 'gpuArray');
+  var col = new $M.CL.MatrixCL([out_h, out_w, n, kh, kw, c], 'single');
+  //var col = $M.zeros(out_h, out_w, n, kh, kw, c, 'gpuArray');
 
   if (!im2col_perm_gpu_kernel) {
     im2col_perm_gpu_kernel = $M.CL.createKernel([
@@ -149,21 +150,22 @@ export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[]
       'int out_x = i / out_h % out_w;',
       'int ky = i / (out_h * out_w) % kh;',
       'int kx = i / (out_h * out_w * kh) % kw;',
+      'int c = i / (out_h * out_w * kh * kw) % ch;',
       'int iny = ky + out_y * sy - ph;',
       'int inx = kx + out_x * sx - pw;',
       'if (iny < 0 || iny >= h || inx < 0 || inx >= w) {',
-      'for (int c = 0; c < ch; c++) {',
+      //'for (int c = 0; c < ch; c++) {',
       '  for (int batch = 0; batch < n; batch++) {',
       '    col[out_y + (out_x + (batch + (ky + (kx + (c) * kw) * kh) * n) * out_w) * out_h] = pad_val;',
       '  }',
-      '}',
+      //'}',
       '} else {',
-      'for (int c = 0; c < ch; c++) {',
+      //'for (int c = 0; c < ch; c++) {',
       '  for (int batch = 0; batch < n; batch++) {',
       '    col[out_y + (out_x + (batch + (ky + (kx + (c) * kw) * kh) * n) * out_w) * out_h] = img[iny + (inx + (c + (batch) * ch) * w) * h];',
       '  }',
       '}',
-      '}',
+      //'}',
       '}'
     ].join('\n'));
   }
@@ -185,8 +187,8 @@ export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[]
     { datum: h, type: WebCL.type.INT },
     { datum: w, type: WebCL.type.INT },
     { datum: pad_val, type: WebCL.type.FLOAT },
-    { datum: out_h * out_w * kh * kw, type: WebCL.type.UINT }
-  ], out_h * out_w * kh * kw);
+    { datum: out_h * out_w * kh * kw * c, type: WebCL.type.UINT }
+  ], out_h * out_w * kh * kw * c, out_h);
 
   return col;
 }
