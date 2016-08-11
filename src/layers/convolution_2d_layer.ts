@@ -50,7 +50,7 @@ class Convolution2DLayer extends Layer {
   timer_vals: { [index: string]: number };
   timer_name: string;
   _start_timer(name: string) {
-    if (true) {
+    if (false) {
       if (this.timer_begin) {
         this._stop_timer();
       } else {
@@ -63,7 +63,7 @@ class Convolution2DLayer extends Layer {
   }
 
   _stop_timer() {
-    if (true) {
+    if (false) {
       $M.CL.finish();
       var end_time = Date.now();
       var time_ms = end_time - this.timer_begin;
@@ -72,8 +72,9 @@ class Convolution2DLayer extends Layer {
     }
   }
 
-  _show_timer() {
-    if (true) {
+  _show_timer(name: string) {
+    if (false) {
+      console.log('time for ' + name);
       for (var key in this.timer_vals) {
         if (this.timer_vals.hasOwnProperty(key)) {
           var element = this.timer_vals[key];
@@ -89,13 +90,14 @@ class Convolution2DLayer extends Layer {
     this.weight.reshape_inplace(this.ksize[0] * this.ksize[1] * this.in_size, this.out_size);
     this.timer_vals = {};
     var top = $M.autodestruct(() => {
+      var out_h: number, out_w: number;
       var output: $M.Matrix = null;
       if (config.devicetype == 'cl') {
         this._start_timer('im2col_perm');
         var col_permute = im2col.im2col_cl_perm(data, this.ksize, this.stride, this.pad);
         var col_shape = $M.sizejsa(col_permute);
-        var out_h = col_shape[0];
-        var out_w = col_shape[1];
+        out_h = col_shape[0];
+        out_w = col_shape[1];
         col_permute.reshape_inplace(out_h * out_w * n, -1);
         this._start_timer('mtimes');
         var output_b = $M.mtimes(col_permute, this.weight);
@@ -116,36 +118,31 @@ class Convolution2DLayer extends Layer {
           ], output._numel);
         }
         this._stop_timer();
-        console.log('#forward times');
-        this._show_timer();
+        this._show_timer('conv forward');
       } else {
         for (var batch = 1; batch <= n; batch++) {
-          this._start_timer('get_img');
           var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
           var col: $M.Matrix;
-          this._start_timer('im2col');
           col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+          img.destruct();
           var col_shape = $M.sizejsa(col);
-          var out_h = col_shape[0];
-          var out_w = col_shape[1];
+          out_h = col_shape[0];
+          out_w = col_shape[1];
           col.reshape_inplace(out_h * out_w, -1);
-          this._start_timer('mtimes');
           var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
-          this._start_timer('plus_bias');
+          col.destruct();
           if (this.use_bias) {
             var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
+            output_b.destruct();
           } else {
             var output_b_with_bias = output_b;
           }
           if (batch == 1) {
             output = $M.zeros(out_h * out_w, this.out_size, n);
           }
-          this._start_timer('set_output');
           output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
-          this._stop_timer();
+          output_b_with_bias.destruct();
         }
-        console.log('#forward times');
-        this._show_timer();
         output.reshape_inplace(out_h, out_w, this.out_size, n);
       }
       return output;
@@ -161,7 +158,6 @@ class Convolution2DLayer extends Layer {
     var data: $M.Matrix = bottoms[0];
     var top_delta: $M.Matrix = top_deltas[0];
     var data_orig_shape = $M.size(data);
-    console.log('start backward');
 
     this.timer_vals = {};
     var bottom_delta = $M.autodestruct(() => {
@@ -187,32 +183,29 @@ class Convolution2DLayer extends Layer {
         this._start_timer('col2im_perm');
         var output = im2col.col2im_cl_perm(delta_col_perm, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
         this._stop_timer();
-        console.log('#backward times');
-        this._show_timer();
+        this._show_timer('conv backward');
       } else {
         var weight_t = $M.t(this.weight);
         for (var batch = 1; batch <= n; batch++) {
-          console.log('1');
           var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
           var top_delta_shape = $M.sizejsa(top_delta_batch);
           var out_h = top_delta_shape[0];
           var out_w = top_delta_shape[1];
-          console.log('2');
           top_delta_batch.reshape_inplace(out_h * out_w, -1);
 
           var delta_col_batch = $M.mtimes(top_delta_batch, weight_t);
-          console.log('3');
+          top_delta_batch.destruct();
           if (batch == 1) {
             output = $M.zeros($M.size(data));
           }
           delta_col_batch.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, 1);
           var bottom_delta_col: $M.Matrix;
-          console.log('4');
           bottom_delta_col = im2col.col2im_cpu(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
-          console.log('5');
+          delta_col_batch.destruct();
           output.set($M.colon(), $M.colon(), $M.colon(), batch, bottom_delta_col);
+          bottom_delta_col.destruct();
         }
-
+        weight_t.destruct();
       }
       this.weight.reshape_inplace(weight_origsize_jsa);
       return output;
@@ -228,7 +221,6 @@ class Convolution2DLayer extends Layer {
     var top_delta: $M.Matrix = top_deltas[0];
     var top_delta_shape = $M.sizejsa(top_delta);
 
-    console.log('start calcupdate');
     this.timer_vals = {};
     var n = $M.size(data, 4);
     var new_delta_weight: $M.Matrix = $M.autodestruct(() => {
@@ -255,7 +247,6 @@ class Convolution2DLayer extends Layer {
         this._stop_timer();
         output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
       } else {
-        console.log('u1');
         for (var batch = 1; batch <= n; batch++) {
           var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
           var col: $M.Matrix;
@@ -279,7 +270,6 @@ class Convolution2DLayer extends Layer {
           }
         }
         output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
-        console.log('u2');
       }
       return output;
     });
@@ -288,7 +278,6 @@ class Convolution2DLayer extends Layer {
     old_delta_weight.destruct();
     new_delta_weight.destruct();
 
-        console.log('u3');
     if (this.use_bias) {
       if (config.devicetype == 'cl') {
         this._start_timer('bias');
@@ -301,22 +290,19 @@ class Convolution2DLayer extends Layer {
           { datum: top_delta_shape[2], type: WebCL.type.UINT },//channels
           { datum: top_delta_shape[3], type: WebCL.type.UINT }
         ], [group_size * top_delta_shape[2]], [group_size]);
+        this._stop_timer();
       } else {
-        var new_delta_bias = $M.autodestruct(() => {
-          this._start_timer('bias');
-          var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
-          td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
-          var delta_bias = $M.sum(td_permuted, 2);
-          return $M.plus(this.delta_bias, delta_bias);
-        });
+        var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
+        td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
+        var delta_bias = $M.sum(td_permuted, 2);
+        td_permuted.destruct();
+        var new_delta_bias = $M.plus(this.delta_bias, delta_bias);
+        delta_bias.destruct();
         this.delta_bias.destruct();
         this.delta_bias = new_delta_bias;
       }
-      this._stop_timer();
     }
-        console.log('u4');
-    console.log('#update times');
-    this._show_timer();
+    this._show_timer('conv update');
 
     setImmediate(function () {
       callback();
