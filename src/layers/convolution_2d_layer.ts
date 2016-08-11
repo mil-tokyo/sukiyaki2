@@ -130,6 +130,12 @@ class Convolution2DLayer extends Layer {
       this._start_timer('permute_output');
          var output = $M.permute(output_b, [1, 3, 2]);
       output.reshape_inplace(out_h, out_w, this.out_size, n);
+         if (this.use_bias) {
+      this._start_timer('plus_bias');
+      this.bias.reshape_inplace(1, 1, -1);
+           var output = $M.plus(output, $M.repmat(this.bias, out_h, out_w, 1, n));
+           this.bias.reshape_inplace(-1, 1);
+         }
       this._stop_timer();
       console.log('#forward times');
       this._show_timer();
