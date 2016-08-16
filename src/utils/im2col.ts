@@ -264,7 +264,7 @@ export function im2col_cl_perm(img: $M.Matrix, ksize: number[], stride: number[]
     { datum: w, type: WebCL.type.INT },
     { datum: pad_val, type: WebCL.type.FLOAT },
     { datum: out_h * out_w * c * n, type: WebCL.type.UINT }
-  ], out_h * out_w * c * n, out_h);
+  ], out_h * out_w * c * n, 256);
 
   return col;
 }
