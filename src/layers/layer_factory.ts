@@ -1,50 +1,39 @@
 import Layer = require('./layer');
-import LinearLayer = require('./linear_layer');
-import BranchLayer = require('./branch_layer');
-import PlusLayer = require('./plus_layer');
-import DataLayer = require('./data_layer');
-import LossLayer = require('./loss_layer');
-import MnistDataLayer = require('./mnist_data_layer');
-import BlobDataLayer = require('./blob_data_layer');
-import SoftmaxCrossEntropyLayer = require('./softmax_cross_entropy_layer');
-import ReluLayer = require('./relu_layer');
-import AccuracyLayer = require('./accuracy_layer');
-import Convolution2DLayer = require('./convolution_2d_layer');
-import Pooling2DLayer = require('./pooling_2d_layer');
-import BatchNormalizationLayer = require('./batch_normalization_layer');
-import DropoutLayer = require('./dropout_layer');
+import Layers = require('./index');
 
 class LayerFactory {  
   static create(type: string, params: any): Layer {
     switch (type) {
       case 'data':
-        return new DataLayer(params);
+        return new Layers.DataLayer(params);
       case 'linear':
-        return new LinearLayer(params);
+        return new Layers.LinearLayer(params);
       case 'branch':
-        return new BranchLayer(params);
+        return new Layers.BranchLayer(params);
       case 'plus':
-        return new PlusLayer(params);
+        return new Layers.PlusLayer(params);
       case 'loss':
-        return new LossLayer(params);
+        return new Layers.LossLayer(params);
       case 'mnist_data':
-        return new MnistDataLayer(params);
+        return new Layers.MnistDataLayer(params);
       case 'blob_data':
-        return new BlobDataLayer(params);
+        return new Layers.BlobDataLayer(params);
+      case 'data_augmentation_layer':
+        return new Layers.DataAugmentationLayer(params);
       case 'softmax_cross_entropy':
-        return new SoftmaxCrossEntropyLayer(params);
+        return new Layers.SoftmaxCrossEntropyLayer(params);
       case 'relu':
-        return new ReluLayer(params);
+        return new Layers.ReluLayer(params);
       case 'accuracy':
-        return new AccuracyLayer(params);
+        return new Layers.AccuracyLayer(params);
       case 'convolution_2d':
-        return new Convolution2DLayer(params);
+        return new Layers.Convolution2DLayer(params);
       case 'pooling_2d':
-        return new Pooling2DLayer(params);
+        return new Layers.Pooling2DLayer(params);
       case 'batch_normalization':
-        return new BatchNormalizationLayer(params);
+        return new Layers.BatchNormalizationLayer(params);
       case 'dropout':
-        return new DropoutLayer(params);
+        return new Layers.DropoutLayer(params);
       default:
         throw new Error('Unknown layer');
     }
