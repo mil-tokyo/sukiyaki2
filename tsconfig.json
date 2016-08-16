@@ -11,6 +11,7 @@
     "train_imagenet.ts",
     "train_resnet.ts",
     "spec/sukiyaki.spec.ts",
+    "spec/data_augmentation.spec.ts",
     "typings/index.d.ts"
   ],
   "exclude": [
