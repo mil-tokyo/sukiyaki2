@@ -7,32 +7,46 @@ class ArraySerializer {
     // temporary format
     // header: json indicating offset and size of each variable
     // assuming all weights are Float32Array
-    var header_obj = {};
-    var offset = 32768;
-    // get size
-    for (var layer_name in net.layer_instances) {
-      if (net.layer_instances.hasOwnProperty(layer_name)) {
-        var layer_inst = net.layer_instances[layer_name];
-        if (!layer_inst.train_params) {
-          continue;
-        }
-        for (var i = 0; i < layer_inst.train_params.length; i++) {
-          var train_param_name = layer_inst.train_params[i];
-          var weight: $M.Matrix = layer_inst[train_param_name];
-          var weight_size = $M.numel(weight) * 4;
-          header_obj[layer_name + '/' + train_param_name] = {offset: offset, size: weight_size};
-          offset += weight_size;
+    var header_obj;
+    var max_header_size = 1024;
+    var offset;
+    var header_str;
+    while (true) {
+      header_obj = {};
+      offset = max_header_size;
+      // get size
+      for (var layer_name in net.layer_instances) {
+        if (net.layer_instances.hasOwnProperty(layer_name)) {
+          var layer_inst = net.layer_instances[layer_name];
+          if (!layer_inst.train_params) {
+            continue;
+          }
+          for (var i = 0; i < layer_inst.train_params.length; i++) {
+            var train_param_name = layer_inst.train_params[i];
+            var weight: $M.Matrix = layer_inst[train_param_name];
+            if ($M.klass(weight) != 'single') {
+              throw new Error('Only matrix of klass single is supported');
+            }
+            var weight_size = $M.numel(weight) * 4;
+            header_obj[layer_name + '/' + train_param_name] = { offset: offset, size: weight_size };
+            offset += weight_size;
+          }
         }
       }
+      header_str = JSON.stringify(header_obj);
+      if (header_str.length < max_header_size) {
+        //ok
+        break;
+      }
+      max_header_size = Math.ceil(header_str.length / 1024) * 1024 + 1024;//increase header size and retry
     }
-    
+
     var buf = new Uint8Array(offset);
     //write header as binary
-    var header_str = JSON.stringify(header_obj);
     for (var i = 0; i < header_str.length; i++) {
       buf[i] = header_str.charCodeAt(i);
     }
-    
+
     console.log(header_str);
     //write body
     for (var obj_name in header_obj) {
@@ -44,10 +58,10 @@ class ArraySerializer {
         weight.getdatacopy(null, null, bin_view);
       }
     }
-    
+
     return buf;
   }
-  
+
   static load(buf: Uint8Array, net: Network): void {
     //parse header
     var header_str = '';
@@ -59,7 +73,7 @@ class ArraySerializer {
     }
     console.log(header_str);
     var header_obj = JSON.parse(header_str);
-    
+
     //copy body to each layer weight
     for (var obj_name in header_obj) {
       if (header_obj.hasOwnProperty(obj_name)) {
