@@ -54,7 +54,7 @@ class SoftmaxCrossEntropyLayer extends Layer {
         bottom_delta.set(label, sample, bottom_delta.get(label, sample) - 1);
       }
 
-      bottom_delta = $M.times(bottom_delta, top_delta);
+      bottom_delta = $M.times(bottom_delta, $M.times(top_delta, 1.0 / batch_size));
       return bottom_delta;
     });
 
