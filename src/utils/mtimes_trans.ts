@@ -1,6 +1,6 @@
 import $M = require('milsushi2');
 
-export function mtimes_trans(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans_b: boolean) {
+export function mtimes_trans(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans_b: boolean): $M.Matrix {
   var devicetype = $M.devicetype(A);
   if (devicetype !== $M.devicetype(B)) {
     throw new Error('devicetype mismatch');
@@ -25,7 +25,7 @@ export function mtimes_trans(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans
   }
 }
 
-export function mtimes_trans_cl(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans_b: boolean) {
+export function mtimes_trans_cl(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans_b: boolean): $M.Matrix {
   if (A._ndims != 2 || B._ndims != 2) {
     throw new Error('Matrix must be two-dimensional');
   }
