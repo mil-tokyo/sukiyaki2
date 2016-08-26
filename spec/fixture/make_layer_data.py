@@ -78,6 +78,48 @@ def convolution_2d(n, in_size, out_size, in_shape, ksize, stride, pad):
         "forward":{"bottoms":[x], "tops":[y]},
         "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
 
+def convolution_2d_group(n, in_size, out_size, in_shape, ksize, stride, pad, groups):
+    from chainer.functions.connection.convolution_2d import Convolution2DFunction
+    f = Convolution2DFunction(stride = stride, pad = pad)
+    x = random_float32((n, in_size) + in_shape)
+    in_group_size = in_size // groups
+    out_group_size = out_size // groups
+    W = random_float32((out_size, in_group_size) + ksize)
+    b = random_float32((out_size,))
+    ys = []
+    gys = []
+    gxs = []
+    gWs = []
+    gbs = []
+    for g in range(groups):
+        xg = x[:, g*in_group_size:(g+1)*in_group_size, :, :]
+        Wg = W[g*out_group_size:(g+1)*out_group_size, :, :, :]
+        bg = b[g*out_group_size:(g+1)*out_group_size]
+        yg, = f.forward((xg, Wg, bg))
+        gyg = random_float32(yg.shape)
+        gxg, gWg, gbg = f.backward((xg, Wg, bg), (gyg,))
+        ys.append(yg)
+        gys.append(gyg)
+        gxs.append(gxg)
+        gWs.append(gWg)
+        gbs.append(gbg)
+
+    y = np.concatenate(ys, axis = 1)
+    gy = np.concatenate(gys, axis = 1)
+    gx = np.concatenate(gxs, axis = 1)
+    gW = np.concatenate(gWs, axis = 0)
+    gb = np.concatenate(gbs, axis = 0)
+    # change order from (n, c, h, w) to (h, w, c, n), (out,in,h,w) to (h, w, in, out)
+    x, W, y, gy, gx, gW = reorder_nchw_hwcn(x, W, y, gy, gx, gW)
+
+    layer_params = {"type":"convolution_2d", "params": {"in_size":in_size, "out_size":out_size, "ksize":ksize, "stride":stride, "pad":pad, "group": groups}}
+
+    return {"layer_params":layer_params,
+        "train_params":{"weight":W, "bias":b},
+        "delta_params":{"delta_weight":gW, "delta_bias": gb},
+        "forward":{"bottoms":[x], "tops":[y]},
+        "backward":{"bottoms":[x], "top_deltas":[gy], "bottom_deltas":[gx]}}
+
 def pooling_2d(type, n, in_size, in_shape, ksize, stride, pad):
     from chainer.functions.pooling.max_pooling_2d import MaxPooling2D
     from chainer.functions.pooling.average_pooling_2d import AveragePooling2D
@@ -166,6 +208,7 @@ if __name__ == '__main__':
     save_case("convolution_2d", convolution_2d(2, 3, 4, (5,5), (3,3),(1,1),(0,0)))
     save_case("convolution_2d_stride_pad", convolution_2d(2, 3, 4, (6, 7), (3, 5),(2, 3),(1, 2)))
     save_case("convolution_2d_1x1", convolution_2d(4, 2, 3, (7, 6), (1, 1),(1, 1),(0,0)))
+    save_case("convolution_2d_group", convolution_2d_group(2, 6, 8, (6, 7), (3, 5),(2, 3),(1, 2), 2))
     save_case("max_pooling_2d", pooling_2d('max', 2, 3, (6, 7), (3, 5), (2, 3), (1, 2)))
     save_case("average_pooling_2d", pooling_2d('average', 2, 3, (6, 7), (3, 5), (2, 3), (1, 2)))
     save_case("batch_normalization_2d", batch_normalization((4, 5), eps = 1e-5))
