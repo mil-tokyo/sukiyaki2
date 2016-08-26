@@ -40,6 +40,7 @@ class Convolution2DLayer extends Layer {
       this.train_params = ['weight'];
       this.delta_params = ['delta_weight'];
     }
+    this.timer_enable = false;
   }
 
   init(callback: () => void): void {
@@ -49,8 +50,9 @@ class Convolution2DLayer extends Layer {
   timer_begin: number;
   timer_vals: { [index: string]: number };
   timer_name: string;
+  timer_enable: boolean;
   _start_timer(name: string) {
-    if (false) {
+    if (this.timer_enable) {
       if (this.timer_begin) {
         this._stop_timer();
       } else {
@@ -63,7 +65,7 @@ class Convolution2DLayer extends Layer {
   }
 
   _stop_timer() {
-    if (false) {
+    if (this.timer_enable) {
       $M.CL.finish();
       var end_time = Date.now();
       var time_ms = end_time - this.timer_begin;
@@ -73,7 +75,7 @@ class Convolution2DLayer extends Layer {
   }
 
   _show_timer(name: string) {
-    if (false) {
+    if (this.timer_enable) {
       console.log('time for ' + name);
       for (var key in this.timer_vals) {
         if (this.timer_vals.hasOwnProperty(key)) {
