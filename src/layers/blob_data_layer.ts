@@ -8,6 +8,8 @@ class BlobDataLayer extends Layer {
   label: $M.Matrix;
   data_shape: number[];
   file_prefix: string;
+  data_klass: string;
+  data_klass_size: number;
   data_file: any;
   record_size: number;
 
@@ -15,7 +17,18 @@ class BlobDataLayer extends Layer {
     super();
     this.file_prefix = params.file_prefix;
     this.data_shape = params.data_shape;
-    this.record_size = this.data_shape.reduce((pv, cv) => pv * cv, 1) * 4;
+    this.data_klass = params.data_klass || 'uint8';
+    switch (this.data_klass) {
+      case 'single':
+        this.data_klass_size = 4;
+        break;
+      case 'uint8':
+        this.data_klass_size = 1;
+        break;
+      default:
+        throw new Error('Unsupported data_klass');
+    }
+    this.record_size = this.data_shape.reduce((pv, cv) => pv * cv, 1) * this.data_klass_size;
   }
 
   init(callback: () => void): void {
@@ -40,8 +53,16 @@ class BlobDataLayer extends Layer {
     var buffer = new Buffer(this.record_size * range_size);
     fs.read(this.data_file, buffer, 0, this.record_size * range_size, this.record_size * (range_min - 1),
       (err, bytesRead, _buffer) => {
-        var rawimgs = new Float32Array(buffer.buffer);
-        var batch_data = $M.typedarray2mat(this.data_shape.concat(range_size), 'single', rawimgs);
+        var rawimgs;
+        switch (this.data_klass) {
+          case 'single':
+            rawimgs = new Float32Array(buffer.buffer);
+            break;
+          case 'uint8':
+            rawimgs = new Uint8Array(buffer.buffer);
+            break;
+        }
+        var batch_data = $M.typedarray2mat(this.data_shape.concat(range_size), this.data_klass, rawimgs);
         if (config.devicetype == 'cl') {
           var batch_data2 = batch_data;
           batch_data = $M.gpuArray(batch_data2);
@@ -51,6 +72,10 @@ class BlobDataLayer extends Layer {
           batch_label2.destruct();
         }
         buffer = null;
+        // pseudo read ahead (to disk cache)
+        var buffer_dummy = new Buffer(this.record_size * range_size);
+        fs.read(this.data_file, buffer_dummy, 0, this.record_size * range_size, this.record_size * (range_max),
+          (err, bytesRead, _buffer) => {});
         callback([batch_data, batch_label]);
       });
 
