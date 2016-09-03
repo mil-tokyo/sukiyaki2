@@ -24,6 +24,7 @@ class Network {
       var inst = LayerFactory.create(element.type, element.params);
       this.layer_instances[element.name] = inst;
     }
+    this.timer_enable = false;
   }
 
   init(callback: () => void): void {
@@ -70,22 +71,27 @@ class Network {
 
   timer_val: number;
   timer_name: string;
+  timer_enable: boolean;
   _start_timer(name: string) {
+    if (this.timer_enable) {
       this.timer_name = name;
       if (this.devicetype == 'cl') {
         $M.CL.finish();
       }
       this.timer_val = Date.now();
+    }
   }
 
   _stop_timer() {
-    if (this.layer_time) {
-      if (this.devicetype == 'cl') {
-        $M.CL.finish();
+    if (this.timer_enable) {
+      if (this.layer_time) {
+        if (this.devicetype == 'cl') {
+          $M.CL.finish();
+        }
+        var end_time = Date.now();
+        var time_ms = end_time - this.timer_val;
+        this.layer_time[this.timer_name] = time_ms;
       }
-      var end_time = Date.now();
-      var time_ms = end_time - this.timer_val;
-      this.layer_time[this.timer_name] = time_ms;
     }
   }
 
