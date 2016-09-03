@@ -21,7 +21,6 @@ class BranchLayer extends Layer {
   forward(bottoms: $M.Matrix[], config: ForwardConfiguration, callback: (tops: $M.Matrix[]) => void): void {
     //copy inputs
     var data: $M.Matrix = bottoms[0];
-    console.log('branch shape ' + $M.sizejsa(data));
     var outputs = [];
     for (var i = 0; i < this.n_output; i++) {
       outputs.push(data.copy());
