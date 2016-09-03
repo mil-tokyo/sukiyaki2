@@ -18,7 +18,7 @@ class LayerFactory {
         return new Layers.MnistDataLayer(params);
       case 'blob_data':
         return new Layers.BlobDataLayer(params);
-      case 'data_augmentation_layer':
+      case 'data_augmentation':
         return new Layers.DataAugmentationLayer(params);
       case 'softmax_cross_entropy':
         return new Layers.SoftmaxCrossEntropyLayer(params);

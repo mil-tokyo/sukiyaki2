@@ -87,7 +87,7 @@ class DataAugmentationLayer extends Layer {
       $M.CL.executeKernel(this.get_kernel(), [
         { access: WebCL.MEM_WRITE_ONLY, datum: top },
         { access: WebCL.MEM_READ_ONLY, datum: data },
-        { access: WebCL.MEM_READ_ONLY, datum: this.data_mean || data },//dummy data for avoid null pointer
+        { access: WebCL.MEM_READ_ONLY, datum: this._get_data_mean('cl') || data },//dummy data for avoid null pointer
         { datum: this.data_mean ? 1 : 0, type: WebCL.type.INT },
         { datum: out_h, type: WebCL.type.INT },
         { datum: out_w, type: WebCL.type.INT },
@@ -120,7 +120,7 @@ class DataAugmentationLayer extends Layer {
         $M.autodestruct(() => {
           var img = data.get($M.colon(), $M.colon(), $M.colon(), i);
           if (data_mean) {
-            img = $M.minus(img, data_mean);
+            img = $M.minus(img, this._get_data_mean('cpu'));
           }
           img = $M.times(img, scale);
           top.set($M.colon(), $M.colon(), $M.colon(), i, img.get($M.colon(crop_t, crop_t + out_h - 1), colon_x, $M.colon()));
