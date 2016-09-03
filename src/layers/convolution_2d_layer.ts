@@ -259,7 +259,11 @@ class Convolution2DLayer extends Layer {
       top_delta_perm.reshape_inplace(out_h * out_w * n, -1);
       this._start_timer('mtimes');
       //output = $M.mtimes(col_permute_t, top_delta_perm);
-      new_delta_weight = mtimes_trans.mtimes_trans_cl(col_permute, top_delta_perm, true, false);
+      if ($M.size(col_permute, 2) * $M.size(top_delta_perm, 2) >= 64 * 64) {
+        new_delta_weight = mtimes_trans.mtimes_trans_cl(col_permute, top_delta_perm, true, false);
+      } else {
+        new_delta_weight = mtimes_trans.mtimes_atrans_largek(col_permute, top_delta_perm);
+      }
       this._start_timer('destruct');
       var issue_destruct = Date.now();
       col_permute.destruct();
