@@ -12,7 +12,8 @@
     "train_resnet.ts",
     "spec/sukiyaki.spec.ts",
     "spec/data_augmentation.spec.ts",
-    "typings/index.d.ts"
+    "typings/index.d.ts",
+    "run/train_node.ts"
   ],
   "exclude": [
   ]

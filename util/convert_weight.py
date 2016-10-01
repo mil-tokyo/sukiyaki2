@@ -81,6 +81,14 @@ def weight_chainer2sukiyaki(ary):
         ary = np.transpose(ary, (0, 1, 3, 2))
     return ary
 
+def weight_chainer2sukiyaki_vgg_fc6(ary):
+    """
+    special handling for conv-fc connection; out,in_ch,h,w to out,in_ch,w,h
+    """
+    ary = ary.reshape((ary.shape[0], 512, 7, 7))
+    ary = np.transpose(ary, (0, 1, 3, 2))
+    return ary
+
 def weight_sukiyaki2chainer(ary, chainer_shape):
     """
     reshape flat array to specified shape in chainer
@@ -100,7 +108,11 @@ def chainer2sukiyaki(in_path, out_path):
     pairs = {}
     for c_key in keys:
         c_weight = c_model[c_key]
-        s_weight = weight_chainer2sukiyaki(c_weight)
+        if c_key == "fc6/W":
+            print("special handling of vgg fc6")
+            s_weight = weight_chainer2sukiyaki_vgg_fc6(c_weight)
+        else:
+            s_weight = weight_chainer2sukiyaki(c_weight)
         s_key = key_chainer2sukiyaki(c_key)
         pairs[s_key] = s_weight
     del c_model

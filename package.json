@@ -4,6 +4,7 @@
   "description": "Deep Learning Library for JavaScript",
   "main": "index.js",
   "dependencies": {
+    "argparse": "^1.0.9",
     "definitely-typed-jasmine": "^1.0.0",
     "jpeg-turbo": "^0.4.0",
     "milsushi2": "^0.0.0"

@@ -1,0 +1,507 @@
+[
+  {
+    "inputs": [
+      "batch"
+    ], 
+    "name": "d_train", 
+    "outputs": [
+      "rawdata", 
+      "label"
+    ], 
+    "params": {
+      "data_shape": [
+        256, 
+        256, 
+        3
+      ], 
+      "file_prefix": "imagenetraw/train_shuffle"
+    }, 
+    "phase": [
+      "train"
+    ], 
+    "type": "blob_data"
+  }, 
+  {
+    "inputs": [
+      "batch"
+    ], 
+    "name": "d_test", 
+    "outputs": [
+      "rawdata", 
+      "label"
+    ], 
+    "params": {
+      "data_shape": [
+        256, 
+        256, 
+        3
+      ], 
+      "file_prefix": "imagenetraw/val_500"
+    }, 
+    "phase": [
+      "test"
+    ], 
+    "type": "blob_data"
+  }, 
+  {
+    "name": "aug_train",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [224, 224],
+      "scale": 1.0,
+      "random_crop": true,
+      "random_flip": true,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["train"] 
+  },
+  {
+    "name": "aug_test",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [224, 224],
+      "scale": 1.0,
+      "random_crop": false,
+      "random_flip": false,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["test"] 
+  },
+  {
+    "inputs": [
+      "data"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv1_1", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 64, 
+      "in_size": 3
+    }, 
+    "outputs": [
+      "conv1_1"
+    ]
+  },
+  {
+    "inputs": [
+      "conv1_1"
+    ], 
+    "type": "relu", 
+    "name": "conv1_1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv1_1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv1_1_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool1", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 2
+    }, 
+    "outputs": [
+      "pool1"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool1"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv2_1", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 128, 
+      "in_size": 64
+    }, 
+    "outputs": [
+      "conv2_1"
+    ]
+  },
+  {
+    "inputs": [
+      "conv2_1"
+    ], 
+    "type": "relu", 
+    "name": "conv2_1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv2_1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv2_1_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool2", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 2
+    }, 
+    "outputs": [
+      "pool2"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool2"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv3_1", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 128
+    }, 
+    "outputs": [
+      "conv3_1"
+    ]
+  },
+  {
+    "inputs": [
+      "conv3_1"
+    ], 
+    "type": "relu", 
+    "name": "conv3_1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv3_1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv3_1_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv3_2", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 256, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "conv3_2"
+    ]
+  },
+  {
+    "inputs": [
+      "conv3_2"
+    ], 
+    "type": "relu", 
+    "name": "conv3_2_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv3_2_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv3_2_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool3", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 2
+    }, 
+    "outputs": [
+      "pool3"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool3"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv4_1", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 256
+    }, 
+    "outputs": [
+      "conv4_1"
+    ]
+  },
+  {
+    "inputs": [
+      "conv4_1"
+    ], 
+    "type": "relu", 
+    "name": "conv4_1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv4_1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv4_1_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv4_2", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "conv4_2"
+    ]
+  },
+  {
+    "inputs": [
+      "conv4_2"
+    ], 
+    "type": "relu", 
+    "name": "conv4_2_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv4_2_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv4_2_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool4", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 2
+    }, 
+    "outputs": [
+      "pool4"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool4"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv5_1", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "conv5_1"
+    ]
+  },
+  {
+    "inputs": [
+      "conv5_1"
+    ], 
+    "type": "relu", 
+    "name": "conv5_1_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv5_1_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv5_1_relu"
+    ], 
+    "type": "convolution_2d", 
+    "name": "conv5_2", 
+    "params": {
+      "stride": 1, 
+      "bias": true, 
+      "pad": 1, 
+      "ksize": 3, 
+      "out_size": 512, 
+      "in_size": 512
+    }, 
+    "outputs": [
+      "conv5_2"
+    ]
+  },
+  {
+    "inputs": [
+      "conv5_2"
+    ], 
+    "type": "relu", 
+    "name": "conv5_2_relu", 
+    "params": {}, 
+    "outputs": [
+      "conv5_2_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "conv5_2_relu"
+    ], 
+    "type": "pooling_2d", 
+    "name": "pool5", 
+    "params": {
+      "stride": 2, 
+      "pad": 0, 
+      "type": "max", 
+      "ksize": 2
+    }, 
+    "outputs": [
+      "pool5"
+    ]
+  }, 
+  {
+    "inputs": [
+      "pool5"
+    ], 
+    "type": "linear", 
+    "name": "fc6", 
+    "params": {
+      "out_size": 4096, 
+      "in_shape": [
+        7, 
+        7, 
+        512
+      ]
+    }, 
+    "outputs": [
+      "fc6"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc6"
+    ], 
+    "type": "relu", 
+    "name": "fc6_relu", 
+    "params": {}, 
+    "outputs": [
+      "fc6_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc6_relu"
+    ], 
+    "type": "dropout", 
+    "name": "fc6_dropout", 
+    "params": {
+      "dropout_ratio": 0.5
+    }, 
+    "outputs": [
+      "fc6_dropout"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc6_dropout"
+    ], 
+    "type": "linear", 
+    "name": "fc7", 
+    "params": {
+      "out_size": 4096, 
+      "in_size": 4096
+    }, 
+    "outputs": [
+      "fc7"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc7"
+    ], 
+    "type": "relu", 
+    "name": "fc7_relu", 
+    "params": {}, 
+    "outputs": [
+      "fc7_relu"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc7_relu"
+    ], 
+    "type": "dropout", 
+    "name": "fc7_dropout", 
+    "params": {
+      "dropout_ratio": 0.5
+    }, 
+    "outputs": [
+      "fc7_dropout"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc7_dropout"
+    ], 
+    "type": "linear", 
+    "name": "fc8", 
+    "params": {
+      "out_size": 1000, 
+      "in_size": 4096
+    }, 
+    "outputs": [
+      "fc8"
+    ]
+  }, 
+  {
+    "params": {}, 
+    "type": "softmax_cross_entropy", 
+    "name": "loss", 
+    "outputs": [
+      "loss"
+    ], 
+    "inputs": [
+      "fc8", 
+      "label"
+    ]
+  }, 
+  {
+    "inputs": [
+      "fc8", 
+      "label"
+    ], 
+    "name": "accuracy", 
+    "outputs": [
+      "accuracy"
+    ], 
+    "params": {}, 
+    "phase": [
+      "test"
+    ], 
+    "type": "accuracy"
+  }
+]

@@ -1,7 +1,6 @@
 import $M = require('milsushi2');
 import Sukiyaki = require('./index');
 var Network = Sukiyaki.Network;
-var OptimizerSGD = Sukiyaki.Optimizers.OptimizerSGD;
 var ArraySerializer = Sukiyaki.ArraySerializer;
 import fs = require('fs');
 
@@ -51,8 +50,8 @@ function train_mnist(load_weight: boolean = false, cl: boolean = false) {
     if (cl) {
       net.to_cl();
     }
-    var opt = new OptimizerSGD(net, 1e-3);
-    var batch_size = 10;
+    var opt = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, 1e-2, 0.9);
+    var batch_size = 100;
 
     if (load_weight) {
       console.log('loading net');

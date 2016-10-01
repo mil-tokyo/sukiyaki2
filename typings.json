@@ -2,6 +2,7 @@
   "name": "milsukiyaki2",
   "dependencies": {},
   "globalDependencies": {
+    "argparse": "registry:dt/argparse#1.0.3+20160316155526",
     "node": "registry:dt/node#6.0.0+20160709114037"
   }
 }

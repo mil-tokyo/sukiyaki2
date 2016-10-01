@@ -60,8 +60,8 @@ function train_imagenet(load_weight: boolean = false, cl: boolean = false) {
     var data_mean = $M.permute($M.npyread(fs.readFileSync('./imagenet_mean.npy')), [2, 3, 1]);//to h, w, c
     (<Sukiyaki.Layers.DataAugmentationLayer>net.layer_instances["aug_train"]).set_data_mean(data_mean);
     (<Sukiyaki.Layers.DataAugmentationLayer>net.layer_instances["aug_test"]).set_data_mean(data_mean);
-    var opt = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, 1e-3, 0.9);
-    var batch_size = 128;
+    var opt = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, 1e-2, 0.9);
+    var batch_size = 32;
 
     if (load_weight) {
       console.log('loading net');

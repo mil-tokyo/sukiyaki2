@@ -47,7 +47,7 @@ class ArraySerializer {
       buf[i] = header_str.charCodeAt(i);
     }
 
-    console.log(header_str);
+    //console.log(header_str);
     //write body
     for (var obj_name in header_obj) {
       if (header_obj.hasOwnProperty(obj_name)) {
@@ -71,7 +71,7 @@ class ArraySerializer {
       }
       header_str += String.fromCharCode(buf[i]);
     }
-    console.log(header_str);
+    //console.log(header_str);
     var header_obj = JSON.parse(header_str);
 
     //copy body to each layer weight
@@ -79,6 +79,7 @@ class ArraySerializer {
       if (header_obj.hasOwnProperty(obj_name)) {
         var offset_size = header_obj[obj_name];
         var [layer_name, train_param_name] = obj_name.split('/');
+        //console.log(layer_name);
         var weight: $M.Matrix = net.layer_instances[layer_name][train_param_name];
         var bin_view = new Float32Array(buf.buffer, offset_size.offset, offset_size.size / 4);
         if (weight) {
