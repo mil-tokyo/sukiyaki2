@@ -3,7 +3,7 @@ import Layer = require('./layers/layer');
 import Network = require('./network');
 
 class ArraySerializer {
-  static dump(net: Network): Uint8Array {
+  static dump(net: Network, gradient: boolean = false): Uint8Array {
     // temporary format
     // header: json indicating offset and size of each variable
     // assuming all weights are Float32Array
@@ -21,8 +21,9 @@ class ArraySerializer {
           if (!layer_inst.train_params) {
             continue;
           }
-          for (var i = 0; i < layer_inst.train_params.length; i++) {
-            var train_param_name = layer_inst.train_params[i];
+          var params_names = gradient ? layer_inst.delta_params : layer_inst.train_params;
+          for (var i = 0; i < params_names.length; i++) {
+            var train_param_name = params_names[i];
             var weight: $M.Matrix = layer_inst[train_param_name];
             if ($M.klass(weight) != 'single') {
               throw new Error('Only matrix of klass single is supported');
