@@ -99,6 +99,9 @@ class DataAugmentationLayer extends Layer {
         { datum: Math.random() * 2147483648 | 0, type: WebCL.type.UINT }
       ], out_h * out_w * c * n);
     } else {
+      if ($M.klass(data) != 'single') {
+        data = data.copy('single');
+      }
       top = $M.zeros(out_h, out_w, c, n);
       var rnd = Math.random;
       var data_mean = this.data_mean;
