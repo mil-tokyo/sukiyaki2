@@ -45,7 +45,7 @@ function classify_node(netdef: string, mean_file: string, weight: string, dst: s
       var range_size = Math.min(batch_size, validation_length - range_bottom + 1);
       var input_vars: { [index: string]: $M.Matrix } = { 'batch': $M.jsa2mat([range_bottom, range_size]) };
       net.forward(input_vars, () => {
-        final_fc_list.push(net.blobs_forward['fc8'].copy());//[labels,range_size]
+        final_fc_list.push(net.blobs_forward['pred'].copy());//[labels,range_size]
         var val_a = net.blobs_forward['accuracy'].get();
         var val_l = net.blobs_forward['loss'].get();
         validation_sum_accuracy += val_a * range_size;
@@ -80,7 +80,7 @@ function main() {
   parser.addArgument(['--mean'], {});
   parser.addArgument(['--dst'],{required:true});
   parser.addArgument(['--weight'],{required:true});
-  parser.addArgument(['--cl'],{defaultValue:false,type:Boolean});
+  parser.addArgument(['--cl'],{ action: 'storeTrue', defaultValue: false });
   var args = parser.parseArgs();
   classify_node(args.net, args.mean, args.weight, args.dst, args.cl);
 }
