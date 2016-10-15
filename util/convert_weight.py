@@ -21,7 +21,7 @@ def sukiyaki_unpack(binary):
     header = json.loads(header_str)
     pairs = {}
     for key, pos in header.items():
-        pairs[key] = np.frombytes(binary[pos["offset"]:pos["offset"]+pos["size"]], dtype=np.float32)
+        pairs[key] = np.fromstring(binary[pos["offset"]:pos["offset"]+pos["size"]], dtype=np.float32)
     return pairs
 
 def sukiyaki_pack(pairs):
