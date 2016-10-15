@@ -41,6 +41,27 @@ abstract class Optimizer {
     });
   }
 
+  update_divided(divided_input_vars: { [index: string]: $M.Matrix }[], callback: () => void): void {
+    this.zero_grads();
+    var div_i = 0;
+    var div_count = divided_input_vars.length;
+    var update_once = () => {
+      this.net.forward(divided_input_vars[div_i], () => {
+        this.net.backward(() => {
+          div_i++;
+          if (div_i >= div_count) {
+            this.do_update();
+            callback();
+          } else {
+            this.net.release();
+            update_once();
+          }
+        });
+      });
+    };
+    update_once();
+  }
+
   release(): void {
     //release gradients
     for (var key in this.net.layer_instances) {
