@@ -1,0 +1,214 @@
+[
+  {
+    "name": "d_train",
+    "type": "blob_data",
+    "params": {
+      "file_prefix": "mnist_invert/mnist_train_8bit",
+      "data_shape": [
+        28,
+        28,
+        1
+      ],
+      "data_klass": "uint8"
+    },
+    "inputs": [
+      "batch"
+    ],
+    "outputs": [
+      "rawdata",
+      "label"
+    ],
+    "phase": [
+      "train"
+    ]
+  },
+  {
+    "name": "d_test",
+    "type": "blob_data",
+    "params": {
+      "file_prefix": "mnist_invert/mnist_test_8bit",
+      "data_shape": [
+        28,
+        28,
+        1
+      ],
+      "data_klass": "uint8"
+    },
+    "inputs": [
+      "batch"
+    ],
+    "outputs": [
+      "rawdata",
+      "label"
+    ],
+    "phase": [
+      "test"
+    ]
+  },
+  {
+    "name": "aug_train",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [28, 28],
+      "scale": 0.00390625,
+      "random_crop": false,
+      "random_flip": false,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["train"] 
+  },
+  {
+    "name": "aug_test",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [28, 28],
+      "scale": 0.00390625,
+      "random_crop": false,
+      "random_flip": false,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["test"] 
+  },
+  {
+    "name": "conv1",
+    "type": "convolution_2d",
+    "params": {
+      "in_size": 1,
+      "out_size": 20,
+      "ksize": 5,
+      "stride": 1,
+      "pad": 0
+    },
+    "inputs": [
+      "data"
+    ],
+    "outputs": [
+      "conv1"
+    ]
+  },
+  {
+    "name": "pool1",
+    "type": "pooling_2d",
+    "params": {
+      "type": "max",
+      "ksize": 2,
+      "stride": 2,
+      "pad": 0
+    },
+    "inputs": [
+      "conv1"
+    ],
+    "outputs": [
+      "pool1"
+    ]
+  },
+  {
+    "name": "conv2",
+    "type": "convolution_2d",
+    "params": {
+      "in_size": 20,
+      "out_size": 50,
+      "ksize": 5,
+      "stride": 1,
+      "pad": 0
+    },
+    "inputs": [
+      "pool1"
+    ],
+    "outputs": [
+      "conv2"
+    ]
+  },
+  {
+    "name": "pool2",
+    "type": "pooling_2d",
+    "params": {
+      "type": "max",
+      "ksize": 2,
+      "stride": 2,
+      "pad": 0
+    },
+    "inputs": [
+      "conv2"
+    ],
+    "outputs": [
+      "pool2"
+    ]
+  },
+  {
+    "name": "fc3",
+    "type": "linear",
+    "params": {
+      "in_shape": [
+        4,
+        4,
+        50
+      ],
+      "out_size": 500
+    },
+    "inputs": [
+      "pool2"
+    ],
+    "outputs": [
+      "fc3"
+    ]
+  },
+  {
+    "name": "relu3",
+    "type": "relu",
+    "params": {},
+    "inputs": [
+      "fc3"
+    ],
+    "outputs": [
+      "relu3"
+    ]
+  },
+  {
+    "name": "fc4",
+    "type": "linear",
+    "params": {
+      "in_shape": [
+        500
+      ],
+      "out_size": 10
+    },
+    "inputs": [
+      "relu3"
+    ],
+    "outputs": [
+      "pred"
+    ]
+  },
+  {
+    "name": "l",
+    "type": "softmax_cross_entropy",
+    "params": {},
+    "inputs": [
+      "pred",
+      "label"
+    ],
+    "outputs": [
+      "loss"
+    ]
+  },
+  {
+    "name": "a",
+    "type": "accuracy",
+    "params": {},
+    "inputs": [
+      "pred",
+      "label"
+    ],
+    "outputs": [
+      "accuracy"
+    ],
+    "phase": [
+      "test"
+    ]
+  }
+]

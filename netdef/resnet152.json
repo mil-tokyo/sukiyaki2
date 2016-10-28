@@ -5,16 +5,16 @@
     ], 
     "name": "d_train", 
     "outputs": [
-      "data", 
+      "rawdata", 
       "label"
     ], 
     "params": {
       "data_shape": [
-        224, 
-        224, 
+        256, 
+        256, 
         3
       ], 
-      "file_prefix": "imagenet224/train_100k"
+      "file_prefix": "imagenetraw/train_shuffle"
     }, 
     "phase": [
       "train"
@@ -27,22 +27,50 @@
     ], 
     "name": "d_test", 
     "outputs": [
-      "data", 
+      "rawdata", 
       "label"
     ], 
     "params": {
       "data_shape": [
-        224, 
-        224, 
+        256, 
+        256, 
         3
       ], 
-      "file_prefix": "imagenet224/val"
+      "file_prefix": "imagenetraw/val_500"
     }, 
     "phase": [
       "test"
     ], 
     "type": "blob_data"
   }, 
+  {
+    "name": "aug_train",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [224, 224],
+      "scale": 1.0,
+      "random_crop": true,
+      "random_flip": true,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["train"] 
+  },
+  {
+    "name": "aug_test",
+    "type": "data_augmentation",
+    "params": {
+      "out_shape": [224, 224],
+      "scale": 1.0,
+      "random_crop": false,
+      "random_flip": false,
+      "input_klass": "uint8"
+    }, 
+    "inputs": ["rawdata"], 
+    "outputs": ["data"], 
+    "phase": ["test"] 
+  },
   {
     "inputs": [
       "data"

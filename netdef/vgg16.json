@@ -36,7 +36,7 @@
         256, 
         3
       ], 
-      "file_prefix": "imagenetraw/val_5k"
+      "file_prefix": "imagenetraw/val_500"
     }, 
     "phase": [
       "test"
