@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import $M = require('milsushi2');
 import Sukiyaki = require('../index');
 import argparse = require('argparse');
@@ -45,7 +46,7 @@ function classify_node(netdef: string, mean_file: string, weight: string, dst: s
       var range_size = Math.min(batch_size, validation_length - range_bottom + 1);
       var input_vars: { [index: string]: $M.Matrix } = { 'batch': $M.jsa2mat([range_bottom, range_size]) };
       net.forward(input_vars, () => {
-        final_fc_list.push(net.blobs_forward['pred'].copy());//[labels,range_size]
+        final_fc_list.push(net.blobs_forward['fc8'].copy());//[labels,range_size]
         var val_a = net.blobs_forward['accuracy'].get();
         var val_l = net.blobs_forward['loss'].get();
         validation_sum_accuracy += val_a * range_size;

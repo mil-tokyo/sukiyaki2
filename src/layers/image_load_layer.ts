@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import $M = require('milsushi2');
 import jpg = require('jpeg-turbo');
 import fs = require('fs');

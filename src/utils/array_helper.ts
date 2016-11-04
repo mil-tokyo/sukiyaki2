@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 // Helper functions of Array
 
 export function repeat_scalar(val: number | number[], length: number): number[] {

@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import $M = require('milsushi2');
 
 export function mtimes_trans(A: $M.Matrix, B: $M.Matrix, trans_a: boolean, trans_b: boolean): $M.Matrix {

@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import $M = require('milsushi2');
 import Layer = require('./layers/layer');
 import Network = require('./network');

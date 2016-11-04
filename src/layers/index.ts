@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import Layer = require('./layer');
 export import LinearLayer = require('./linear_layer');
 export import BranchLayer = require('./branch_layer');

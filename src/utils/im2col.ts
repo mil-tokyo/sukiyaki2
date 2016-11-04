@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 // utility for convolution / pooling of 2d image
 // based on chainer's conv.py implementation
 

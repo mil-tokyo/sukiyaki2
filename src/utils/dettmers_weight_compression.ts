@@ -1,4 +1,5 @@
-// implements weight / gradient compression in "8-Bit Approximations for Parallelism in Deep Learning" by Tom Dettmers
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
+// implements weight / gradient compression in "8-Bit Approximations for Parallelism in Deep Learning" by Tom Dettmers (ICLR 2016)
 
 import $M = require('milsushi2');
 
