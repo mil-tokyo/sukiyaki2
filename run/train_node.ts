@@ -1,3 +1,4 @@
+// (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 import $M = require('milsushi2');
 import Sukiyaki = require('../index');
 import argparse = require('argparse');
@@ -20,6 +21,7 @@ function train_node(args) {//netdef: string, mean_file: string, lr: number, save
     net.layer_time = {};
     var batch_size = args.batch_size;
     var batch_division_count = args.batch_div;
+    var val_batch_size = args.val_batch_size || batch_size;
 
     var opt = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, args.lr / batch_division_count, args.momentum);
     if (args.mean_file) {
@@ -102,7 +104,7 @@ function train_node(args) {//netdef: string, mean_file: string, lr: number, save
     };
 
     var validation_iter = 0;
-    var validation_n_batch = Math.floor((<Sukiyaki.Layers.BlobDataLayer>net.layer_instances["d_test"]).length / batch_size);
+    var validation_n_batch = Math.floor((<Sukiyaki.Layers.BlobDataLayer>net.layer_instances["d_test"]).length / val_batch_size);
     var validation_sum_accuracy = 0;
     var validation_sum_loss = 0;
     var validation = (start_val: boolean = false) => {
@@ -113,8 +115,8 @@ function train_node(args) {//netdef: string, mean_file: string, lr: number, save
         console.log("validation at iteration " + iter);
         net.phase = "test";
       }
-      var range_bottom = validation_iter * batch_size + 1;
-      var range_size = batch_size;
+      var range_bottom = validation_iter * val_batch_size + 1;
+      var range_size = val_batch_size;
       var input_vars: { [index: string]: $M.Matrix } = { 'batch': $M.jsa2mat([range_bottom, range_size]) };
       net.forward(input_vars, () => {
         var val_a = net.blobs_forward['accuracy'].get();
@@ -162,6 +164,7 @@ function main() {
   parser.addArgument(['--cl'], { action: 'storeTrue', defaultValue: false });
   parser.addArgument(['--batch_size'], { defaultValue: 128, type: Number });
   parser.addArgument(['--batch_div'], { defaultValue: 1, type: Number });
+  parser.addArgument(['--val_batch_size'], { defaultValue: 128, type: Number });
   parser.addArgument(['--val_cycle'], { defaultValue: 1000, type: Number });
   parser.addArgument(['--iter'], { defaultValue: 0, type: Number });
   var args = parser.parseArgs();
