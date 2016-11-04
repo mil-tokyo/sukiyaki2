@@ -14,7 +14,8 @@
     "spec/data_augmentation.spec.ts",
     "typings/index.d.ts",
     "run/train_node.ts",
-    "run/classify_node.ts"
+    "run/classify_node.ts",
+    "bench/index.ts"
   ],
   "exclude": [
   ]
