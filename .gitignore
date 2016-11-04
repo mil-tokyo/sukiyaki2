@@ -4,3 +4,5 @@ typings
 *.js
 *.js.map
 *.d.ts
+!browser/*.js
+browser/milsukiyaki2.js
