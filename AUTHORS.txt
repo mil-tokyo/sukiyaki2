@@ -1,0 +1,3 @@
+Authors of sukiyaki2
+
+Masatoshi Hidaka <hidaka@mi.t.u-tokyo.ac.jp>
