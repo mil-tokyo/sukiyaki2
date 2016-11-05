@@ -6,3 +6,4 @@ typings
 *.d.ts
 !browser/*.js
 browser/milsukiyaki2.js
+!docs/**
