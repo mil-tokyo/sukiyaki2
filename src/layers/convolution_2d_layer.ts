@@ -177,30 +177,6 @@ class Convolution2DLayer extends Layer {
             }
           }
         }
-        // for (var batch = 1; batch <= n; batch++) {
-        //   var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-        //   var col: $M.Matrix;
-        //   col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
-        //   img.destruct();
-        //   var col_shape = $M.sizejsa(col);
-        //   out_h = col_shape[0];
-        //   out_w = col_shape[1];
-        //   col.reshape_inplace(out_h * out_w, -1);
-        //   var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
-        //   col.destruct();
-        //   if (this.use_bias) {
-        //     var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
-        //     output_b.destruct();
-        //   } else {
-        //     var output_b_with_bias = output_b;
-        //   }
-        //   if (batch == 1) {
-        //     output = $M.zeros(out_h * out_w, this.out_size, n);
-        //   }
-        //   output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
-        //   output_b_with_bias.destruct();
-        // }
-        // output.reshape_inplace(out_h, out_w, this.out_size, n);
       }
       return output;
     });
@@ -303,27 +279,6 @@ class Convolution2DLayer extends Layer {
           }
 
         }
-        // var weight_t = $M.t(this.weight);
-        // for (var batch = 1; batch <= n; batch++) {
-        //   var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
-        //   var top_delta_shape = $M.sizejsa(top_delta_batch);
-        //   var out_h = top_delta_shape[0];
-        //   var out_w = top_delta_shape[1];
-        //   top_delta_batch.reshape_inplace(out_h * out_w, -1);
-
-        //   var delta_col_batch = $M.mtimes(top_delta_batch, weight_t);
-        //   top_delta_batch.destruct();
-        //   if (batch == 1) {
-        //     output = $M.zeros($M.size(data));
-        //   }
-        //   delta_col_batch.reshape_inplace(out_h, out_w, this.ksize[0], this.ksize[1], this.in_size, 1);
-        //   var bottom_delta_col: $M.Matrix;
-        //   bottom_delta_col = im2col.col2im_cpu(delta_col_batch, this.stride, this.pad, [$M.size(data, 1), $M.size(data, 2)]);
-        //   delta_col_batch.destruct();
-        //   output.set($M.colon(), $M.colon(), $M.colon(), batch, bottom_delta_col);
-        //   bottom_delta_col.destruct();
-        // }
-        // weight_t.destruct();
       }
       this.weight.reshape_inplace(weight_origsize_jsa);
       return output;
@@ -408,30 +363,6 @@ class Convolution2DLayer extends Layer {
             }
           }
         }
-        // var output: $M.Matrix = null;
-        // for (var batch = 1; batch <= n; batch++) {
-        //   var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-        //   var col: $M.Matrix;
-        //   col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
-        //   var col_shape = $M.sizejsa(col);
-        //   var out_h = col_shape[0];
-        //   var out_w = col_shape[1];
-        //   col.reshape_inplace(out_h * out_w, -1);
-
-        //   var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
-        //   top_delta_batch.reshape_inplace(out_h * out_w, -1);
-
-        //   var delta_weight_b = $M.mtimes($M.t(col), top_delta_batch);
-        //   if (batch == 1) {
-        //     output = delta_weight_b;
-        //   } else {
-        //     var old_output = output;
-        //     output = $M.plus(old_output, delta_weight_b);
-        //     old_output.destruct();
-        //     delta_weight_b.destruct();
-        //   }
-        // }
-        // output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
         return output;
       });
     }
@@ -457,11 +388,6 @@ class Convolution2DLayer extends Layer {
         ], [group_size * top_delta_shape[2]], [group_size]);
         this._stop_timer();
       } else {
-        // var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
-        // td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
-        // var delta_bias = $M.sum(td_permuted, 2);
-        // td_permuted.destruct();
-        //var delta_bias = $M.zeros($M.size(this.delta_bias));
         var delta_bias_data = this.delta_bias.getdataref();
         var top_delta_data = top_delta.getdataref();
         var out_h = $M.size(top_delta, 1) | 0;
@@ -478,10 +404,6 @@ class Convolution2DLayer extends Layer {
           }
           delta_bias_data[out_d] += cum;
         }
-        //var new_delta_bias = $M.plus(this.delta_bias, delta_bias);
-        //delta_bias.destruct();
-        //this.delta_bias.destruct();
-        //this.delta_bias = new_delta_bias;
       }
     }
     this._show_timer('conv update');
