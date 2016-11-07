@@ -155,11 +155,11 @@ class Convolution2DLayer extends Layer {
         if (this.use_bias) {
           b_data = this.bias.getdataref();
         }
-        for (var out_d = 0; out_d < out_c; out_d++) {
-          var b_val = this.use_bias ? b_data[out_d] : 0.0;
-          for (var out_x = 0; out_x < out_w; out_x++) {
-            for (var out_y = 0; out_y < out_h; out_y++) {
-              for (var b = 0; b < n; b++) {
+        for (var out_x = 0; out_x < out_w; out_x++) {
+          for (var out_y = 0; out_y < out_h; out_y++) {
+            for (var b = 0; b < n; b++) {
+              for (var out_d = 0; out_d < out_c; out_d++) {
+                var b_val = this.use_bias ? b_data[out_d] : 0.0;
                 var cum = b_val;
                 for (var in_d = 0; in_d < in_c; in_d++) {
                   for (var k_x = 0; k_x < k_w; k_x++) {
@@ -339,7 +339,7 @@ class Convolution2DLayer extends Layer {
         return output;
       });
     }
-    
+
     this._start_timer('add_delta');
     var old_delta_weight = this.delta_weight;
     this.delta_weight = $M.plus(old_delta_weight, new_delta_weight);
