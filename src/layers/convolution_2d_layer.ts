@@ -373,30 +373,65 @@ class Convolution2DLayer extends Layer {
       new_delta_weight.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
     } else {
       new_delta_weight = $M.autodestruct(() => {
-        var output: $M.Matrix = null;
-        for (var batch = 1; batch <= n; batch++) {
-          var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-          var col: $M.Matrix;
-          col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
-          var col_shape = $M.sizejsa(col);
-          var out_h = col_shape[0];
-          var out_w = col_shape[1];
-          col.reshape_inplace(out_h * out_w, -1);
+        var input_data = data.getdataref();
+        var top_delta_data = top_delta.getdataref();
+        var [k_h, k_w] = this.ksize;
+        var [s_y, s_x] = this.stride;
+        var [p_h, p_w] = this.pad;
+        var in_h = $M.size(data, 1) | 0;
+        var in_w = $M.size(data, 2) | 0;
+        var out_h = $M.size(top_delta, 1) | 0;
+        var out_w = $M.size(top_delta, 2) | 0;
+        var out_c = this.out_size | 0;
+        var in_c = this.in_size | 0;
+        var output = $M.zeros($M.size(this.weight));
+        var output_data = output.getdataref();
 
-          var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
-          top_delta_batch.reshape_inplace(out_h * out_w, -1);
-
-          var delta_weight_b = $M.mtimes($M.t(col), top_delta_batch);
-          if (batch == 1) {
-            output = delta_weight_b;
-          } else {
-            var old_output = output;
-            output = $M.plus(old_output, delta_weight_b);
-            old_output.destruct();
-            delta_weight_b.destruct();
+        for (var out_d = 0; out_d < out_c; out_d++) {
+          for (var in_d = 0; in_d < in_c; in_d++) {
+            for (var k_x = 0; k_x < k_w; k_x++) {
+              for (var k_y = 0; k_y < k_h; k_y++) {
+                var cum = 0.0;
+                for (var b = 0; b < n; b++) {
+                  for (var out_x = 0; out_x < out_w; out_x++) {
+                    var in_x = out_x * s_x + k_x - p_w;
+                    if (in_x < 0 || in_x >= in_w) { continue; }
+                    for (var out_y = 0; out_y < out_h; out_y++) {
+                      var in_y = out_y * s_y + k_y - p_h;
+                      if (in_y < 0 || in_y >= in_h) { continue; }
+                      cum += input_data[(((b * in_c) + in_d) * in_w + in_x) * in_h + in_y] * top_delta_data[(((b * out_c) + out_d) * out_w + out_x) * out_h + out_y];
+                    }
+                  }
+                }
+                output_data[(((out_d * in_c) + in_d) * k_w + k_x) * k_h + k_y] = cum;
+              }
+            }
           }
         }
-        output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
+        // var output: $M.Matrix = null;
+        // for (var batch = 1; batch <= n; batch++) {
+        //   var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
+        //   var col: $M.Matrix;
+        //   col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        //   var col_shape = $M.sizejsa(col);
+        //   var out_h = col_shape[0];
+        //   var out_w = col_shape[1];
+        //   col.reshape_inplace(out_h * out_w, -1);
+
+        //   var top_delta_batch = top_delta.get($M.colon(), $M.colon(), $M.colon(), batch);
+        //   top_delta_batch.reshape_inplace(out_h * out_w, -1);
+
+        //   var delta_weight_b = $M.mtimes($M.t(col), top_delta_batch);
+        //   if (batch == 1) {
+        //     output = delta_weight_b;
+        //   } else {
+        //     var old_output = output;
+        //     output = $M.plus(old_output, delta_weight_b);
+        //     old_output.destruct();
+        //     delta_weight_b.destruct();
+        //   }
+        // }
+        // output.reshape_inplace(this.ksize[0], this.ksize[1], this.in_size, this.out_size);
         return output;
       });
     }
