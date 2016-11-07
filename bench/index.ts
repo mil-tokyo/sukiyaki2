@@ -11,7 +11,6 @@ console.log('OpenCL ' + cl_enabled);
 var MatrixCL = null;
 if (cl_enabled) {
   $M.initcl();
-  MatrixCL = require('../src/cl/matrix_cl');
 }
 
 import BenchBase = require('./bench_base');

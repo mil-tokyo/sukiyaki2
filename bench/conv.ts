@@ -20,8 +20,16 @@ class conv extends BenchBase {
     var config = new Sukiyaki.ForwardConfiguration();
     config.devicetype = 'cpu';
     config.phase = 'train';
+    this.layer['delta_weight'] = $M.zeros($M.size(this.layer['weight']));
+    this.layer['delta_bias'] = $M.zeros($M.size(this.layer['bias']));
     this.layer.forward([input_image], config, (tops: $M.Matrix[]) => {
-      callback();
+      // use top as top gradient
+      var top_delta = tops[0];
+      this.layer.calculateUpdateParams([input_image], [top_delta], config, () => {
+        this.layer.backward([input_image], [top_delta], config, (bottom_deltas: $M.Matrix[]) => {
+          callback();
+        })
+      });
     });
   }
 }
