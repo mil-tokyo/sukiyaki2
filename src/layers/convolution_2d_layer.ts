@@ -457,14 +457,31 @@ class Convolution2DLayer extends Layer {
         ], [group_size * top_delta_shape[2]], [group_size]);
         this._stop_timer();
       } else {
-        var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
-        td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
-        var delta_bias = $M.sum(td_permuted, 2);
-        td_permuted.destruct();
-        var new_delta_bias = $M.plus(this.delta_bias, delta_bias);
-        delta_bias.destruct();
-        this.delta_bias.destruct();
-        this.delta_bias = new_delta_bias;
+        // var td_permuted = $M.permute(top_delta, [3, 1, 2, 4]);
+        // td_permuted.reshape_inplace($M.size(td_permuted, 1), -1);
+        // var delta_bias = $M.sum(td_permuted, 2);
+        // td_permuted.destruct();
+        //var delta_bias = $M.zeros($M.size(this.delta_bias));
+        var delta_bias_data = this.delta_bias.getdataref();
+        var top_delta_data = top_delta.getdataref();
+        var out_h = $M.size(top_delta, 1) | 0;
+        var out_w = $M.size(top_delta, 2) | 0;
+        var out_c = this.out_size | 0;
+        var in_c = this.in_size | 0;
+        var out_hw = out_h * out_w;
+        for (var out_d = 0; out_d < out_c; out_d++) {
+          var cum = 0.0;
+          for (var b = 0; b < n; b++) {
+            for (var out_yx = 0; out_yx < out_hw; out_yx++) {
+              cum += top_delta_data[((b * out_c) + out_d) * out_hw + out_yx];
+            }
+          }
+          delta_bias_data[out_d] += cum;
+        }
+        //var new_delta_bias = $M.plus(this.delta_bias, delta_bias);
+        //delta_bias.destruct();
+        //this.delta_bias.destruct();
+        //this.delta_bias = new_delta_bias;
       }
     }
     this._show_timer('conv update');
