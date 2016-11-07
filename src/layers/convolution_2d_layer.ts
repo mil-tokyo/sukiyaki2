@@ -138,30 +138,69 @@ class Convolution2DLayer extends Layer {
         this._stop_timer();
         this._show_timer('conv forward');
       } else {
-        for (var batch = 1; batch <= n; batch++) {
-          var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
-          var col: $M.Matrix;
-          col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
-          img.destruct();
-          var col_shape = $M.sizejsa(col);
-          out_h = col_shape[0];
-          out_w = col_shape[1];
-          col.reshape_inplace(out_h * out_w, -1);
-          var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
-          col.destruct();
-          if (this.use_bias) {
-            var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
-            output_b.destruct();
-          } else {
-            var output_b_with_bias = output_b;
-          }
-          if (batch == 1) {
-            output = $M.zeros(out_h * out_w, this.out_size, n);
-          }
-          output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
-          output_b_with_bias.destruct();
+        var input_data = data.getdataref();
+        var [k_h, k_w] = this.ksize;
+        var [s_y, s_x] = this.stride;
+        var [p_h, p_w] = this.pad;
+        var in_h = $M.size(data, 1);
+        var in_w = $M.size(data, 2);
+        var out_h = im2col.conv_outsize(in_h, k_h, s_x, p_h, false);
+        var out_w = im2col.conv_outsize(in_w, k_w, s_y, p_w, false);
+        var out_c = this.out_size;
+        var in_c = this.in_size;
+        output = $M.zeros(out_h, out_w, out_c, n);
+        var output_data = output.getdataref();
+        var w_data = this.weight.getdataref();
+        var b_data;
+        if (this.use_bias) {
+          b_data = this.bias.getdataref();
         }
-        output.reshape_inplace(out_h, out_w, this.out_size, n);
+        for (var out_d = 0; out_d < out_c; out_d++) {
+          var b_val = this.use_bias ? b_data[out_d] : 0.0;
+          for (var out_x = 0; out_x < out_w; out_x++) {
+            for (var out_y = 0; out_y < out_h; out_y++) {
+              for (var b = 0; b < n; b++) {
+                var cum = b_val;
+                for (var in_d = 0; in_d < in_c; in_d++) {
+                  for (var k_x = 0; k_x < k_w; k_x++) {
+                    var in_x = out_x * s_x + k_x - p_w;
+                    if (in_x < 0 || in_x >= in_w) { continue; }
+                    for (var k_y = 0; k_y < k_h; k_y++) {
+                      var in_y = out_y * s_y + k_y - p_h;
+                      if (in_y < 0 || in_y >= in_h) { continue; }
+                      cum += input_data[(((b * in_c) + in_d) * in_w + in_x) * in_h + in_y] * w_data[(((out_d * in_c) + in_d) * k_w + k_x) * k_h + k_y];
+                    }
+                  }
+                }
+                output_data[(((b * out_c) + out_d) * out_w + out_x) * out_h + out_y] = cum;
+              }
+            }
+          }
+        }
+        // for (var batch = 1; batch <= n; batch++) {
+        //   var img = data.get($M.colon(), $M.colon(), $M.colon(), batch);
+        //   var col: $M.Matrix;
+        //   col = im2col.im2col_cpu(img, this.ksize, this.stride, this.pad);
+        //   img.destruct();
+        //   var col_shape = $M.sizejsa(col);
+        //   out_h = col_shape[0];
+        //   out_w = col_shape[1];
+        //   col.reshape_inplace(out_h * out_w, -1);
+        //   var output_b = $M.mtimes(col, this.weight);//[out_h*out_w, out_size]
+        //   col.destruct();
+        //   if (this.use_bias) {
+        //     var output_b_with_bias = $M.plus(output_b, $M.repmat($M.t(this.bias), $M.sizejsa(output_b)[0], 1));
+        //     output_b.destruct();
+        //   } else {
+        //     var output_b_with_bias = output_b;
+        //   }
+        //   if (batch == 1) {
+        //     output = $M.zeros(out_h * out_w, this.out_size, n);
+        //   }
+        //   output.set($M.colon(), $M.colon(), batch, output_b_with_bias);
+        //   output_b_with_bias.destruct();
+        // }
+        // output.reshape_inplace(out_h, out_w, this.out_size, n);
       }
       return output;
     });
