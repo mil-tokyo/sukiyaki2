@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Sukiyaki2 Demo: Training Digit Recognition</title>
+  <script src="../../js/jquery-3.1.1.min.js"></script>
+  <script src="../../js/setImmediate.js"></script>
+  <script src="../../js/milsushi2.js"></script>
+  <script src="../../js/milsukiyaki2.js"></script>
+  <script src="mnist_demo.js"></script>
+  <script src="mnist_data.js" defer></script>
+</head>
+
+<body>
+  <form>
+    <h1>Sukiyaki2 demo: training digit recognition</h1>
+    <div>
+      <input type="text" name="status-msg" size="40"><br>
+      Network definition: <textarea name="netdef">[{ "params": { "random_crop": false, "random_flip": false, "scale": 0.00390625, "input_klass": "uint8", "out_shape": [28, 28] }, "type": "data_augmentation", "name": "aug_test", "outputs": ["augdata"], "inputs": ["data"] },
+{ "params": { "out_size": 20, "stride": 1, "pad": 0, "in_size": 1, "ksize": 5 }, "type": "convolution_2d", "name": "conv1", "outputs": ["conv1"], "inputs": ["augdata"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool1", "outputs": ["pool1"], "inputs": ["conv1"] },
+{ "params": { "out_size": 50, "stride": 1, "pad": 0, "in_size": 20, "ksize": 5 }, "type": "convolution_2d", "name": "conv2", "outputs": ["conv2"], "inputs": ["pool1"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool2", "outputs": ["pool2"], "inputs": ["conv2"] },
+{ "params": { "out_size": 500, "in_shape": [4, 4, 50] }, "type": "linear", "name": "fc3", "outputs": ["fc3"], "inputs": ["pool2"] },
+{ "params": {}, "type": "relu", "name": "relu3", "outputs": ["relu3"], "inputs": ["fc3"] },
+{ "params": { "out_size": 10, "in_shape": [500] }, "type": "linear", "name": "fc4", "outputs": ["pred"], "inputs": ["relu3"] },
+{"params": {}, "type": "softmax_cross_entropy", "name": "l", "outputs": ["loss"], "inputs": ["pred", "label"]},
+{"inputs": ["pred", "label"], "name": "a", "outputs": ["accuracy"], "params": {}, "phase": ["test"], "type": "accuracy"}]</textarea>
+      <button type="button" id="start-training" disabled>Start</button>
+      <span style="font size: 5em">
+         => Predicted: <span id="pred-result" style="font-size: 10em">-</span>
+      </span>
+    </div>
+    <div>
+      Resized image: <canvas id="recognize-in" width="28" height="28"></canvas>
+      <button type="button" id="stop-resume-recognition">Stop</button><br>
+    </div>
+    <div>
+      Supported: Firefox on PCs and Android.
+      iPhone is not supported because its browser does not support camera capture.
+    </div>
+  </form>
+</body>
+
+</html>
