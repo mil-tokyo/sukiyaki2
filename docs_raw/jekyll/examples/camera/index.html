@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Sukiyaki2 Camera Digit Recognition</title>
+  <script src="../../js/jquery-3.1.1.min.js"></script>
+  <script src="../../js/setImmediate.js"></script>
+  <script src="../../js/milsushi2.js"></script>
+  <script src="../../js/milsukiyaki2.js"></script>
+  <script src="camera_demo.js"></script>
+  <script src="lenet_weight.js" defer></script>
+</head>
+
+<body>
+  <form>
+    <h1>Sukiyaki2 demo: digit recognition from camera</h1>
+    <div>
+      <span style="font size: 5em">
+        Input: <video id="camera-in" width="256" height="256" autoplay="1"></video>
+         => Predicted: <span id="result" style="font-size: 10em">-</span>
+      </span>
+    </div>
+    <div>
+      Resized image: <canvas id="recognize-in" width="28" height="28"></canvas>
+      <button type="button" id="stop-resume-recognition">Stop</button><br>
+      <input type="text" name="status-msg" size="40">
+    </div>
+    <div>
+      Supported: Firefox on PCs and Android.
+      iPhone is not supported because its browser does not support camera capture.
+    </div>
+  </form>
+</body>
+
+</html>

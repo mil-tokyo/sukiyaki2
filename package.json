@@ -11,6 +11,7 @@
     "milsushi2": "^0.0.1"
   },
   "devDependencies": {
+    "typedoc": "^0.5.1",
     "typescript": ">=2.0.0",
     "browserify": "^13.0.1",
     "browserify-shim": "^3.8.12",
@@ -20,7 +21,10 @@
   "scripts": {
     "build": "tsc",
     "test": "jasmine-node spec",
-    "browserify": "./do_browserify.sh"
+    "browserify": "./do_browserify.sh",
+    "typedoc": "typedoc . --out ./docs/api/ --target ES5 --module commonjs --mode modules --name Sukiyaki2 --includes apidoc --readme apidoc/index.md",
+    "jekyll": "cd docs_raw/jekyll; bundle exec jekyll build --source . --destination ../../docs",
+    "jekyll-setup": "cd docs_raw/jekyll; bundle install"
   },
   "repository": {
     "type": "git",

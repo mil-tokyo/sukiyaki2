@@ -6,3 +6,4 @@ node_modules
 !browser/*.js
 browser/milsukiyaki2.js
 !docs/**
+!docs_raw/**

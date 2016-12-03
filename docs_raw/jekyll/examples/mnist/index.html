@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Sukiyaki2 Demo: Deep Learning of Digit Recognition</title>
+	<script src="../../js/jquery-3.1.1.min.js"></script>
+	<script src="../../js/setImmediate.js"></script>
+	<script src="../../js/milsushi2.js"></script>
+	<script src="../../js/milsukiyaki2.js"></script>
+	<script src="mnist_demo.js"></script>
+	<link rel="stylesheet" href="mnist_demo.css" type="text/css" />
+</head>
+
+<body>
+	<form>
+		<h1>Sukiyaki2 Demo: Deep Learning of Digit Recognition</h1>
+		<div class="demo-view">
+			Dataset load:
+			<progress id="load-progress" value="0" max="100"></progress><span id="load-progress-text"></span><br>
+			<input type="text" name="status-msg" size="40"><br>
+			<span id="iter-num"></span><br> Test image:
+			<canvas id="recognize-in" width="28" height="28"></canvas>
+			<span style="font size: 5em">
+         => Predicted: <span id="pred-result" style="font-size: 200%">-</span>
+			</span>
+			<br>
+			<span style="font size: 5em">
+         Mean accuracy: <span id="mean-accuracy" style="font-size: 200%">-</span>%
+			</span>
+		</div>
+		<div class="modify-training">
+			<br>
+			<button type="button" id="stop-resume-training" disabled>Pause</button>
+			<select id="learning-rate">
+        <option value="0.1">0.1</option>
+        <option value="0.01" selected>0.01</option>
+        <option value="0.001">0.001</option>
+        <option value="0.0001">0.0001</option>
+      </select>
+      <br>
+			<button type="button" id="view-network-def" disabled>View network definition</button>
+			<div name="netdef" style="display:none;">
+				<textarea name="netdef" cols="80" rows="20">[{ "params": { "random_crop": false, "random_flip": false, "scale": 0.00390625, "input_klass": "uint8", "out_shape": [28, 28] }, "type": "data_augmentation", "name": "aug_test", "outputs": ["augdata"], "inputs": ["data"] },
+{ "params": { "out_size": 10, "stride": 1, "pad": 0, "in_size": 1, "ksize": 5 }, "type": "convolution_2d", "name": "conv1", "outputs": ["conv1"], "inputs": ["augdata"] },
+{ "params": {}, "type": "relu", "name": "relu1", "outputs": ["relu1"], "inputs": ["conv1"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool1", "outputs": ["pool1"], "inputs": ["relu1"] },
+{ "params": { "out_size": 12, "stride": 1, "pad": 0, "in_size": 10, "ksize": 5 }, "type": "convolution_2d", "name": "conv2", "outputs": ["conv2"], "inputs": ["pool1"] },
+{ "params": {}, "type": "relu", "name": "relu2", "outputs": ["relu2"], "inputs": ["conv2"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool2", "outputs": ["pool2"], "inputs": ["relu2"] },
+{ "params": { "out_size": 128, "in_shape": [4, 4, 12] }, "type": "linear", "name": "fc3", "outputs": ["fc3"], "inputs": ["pool2"] },
+{ "params": {}, "type": "relu", "name": "relu3", "outputs": ["relu3"], "inputs": ["fc3"] },
+{ "params": { "out_size": 10, "in_shape": [128] }, "type": "linear", "name": "fc4", "outputs": ["pred"], "inputs": ["relu3"] },
+{"params": {}, "type": "softmax_cross_entropy", "name": "l", "outputs": ["loss"], "inputs": ["pred", "label"]},
+{"inputs": ["pred", "label"], "name": "a", "outputs": ["accuracy"], "params": {}, "phase": ["test"], "type": "accuracy"}]</textarea><br>
+				<button type="button" id="change-network" disabled>Change network</button>
+			</div>
+		</div>
+		<div class="description">
+			Trains convolutional neural network (CNN) on the browser using MNIST dataset (by Yann LeCun).<br> Sukiyaki2 framework
+			of <a href="https://mil-tokyo.github.io/miljs.html">MILJS</a> is used.
+		</div>
+		<hr>
+		<a href="http://www.mi.t.u-tokyo.ac.jp/">Machine Intelligence Laboratory, The University of Tokyo</a>
+	</form>
+</body>
+
+</html>
