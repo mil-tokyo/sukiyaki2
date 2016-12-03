@@ -4,6 +4,8 @@
   "description": "Deep Learning Library for JavaScript",
   "main": "index.js",
   "dependencies": {
+    "@types/argparse": "^1.0.30",
+    "@types/node": "0.0.2",
     "argparse": "^1.0.9",
     "jpeg-turbo": "^0.4.0",
     "milsushi2": "^0.0.1"
