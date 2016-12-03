@@ -4,19 +4,19 @@
   "description": "Deep Learning Library for JavaScript",
   "main": "index.js",
   "dependencies": {
-    "typescript": ">=2.0.0",
     "argparse": "^1.0.9",
-    "definitely-typed-jasmine": "^1.0.0",
     "jpeg-turbo": "^0.4.0",
-    "milsushi2": "^0.0.0"
+    "milsushi2": "^0.0.1"
   },
   "devDependencies": {
+    "typescript": ">=2.0.0",
     "browserify": "^13.0.1",
     "browserify-shim": "^3.8.12",
-    "browserify-header": "^0.9.2"
+    "browserify-header": "^0.9.2",
+    "@types/jasmine": "^2.5.38"
   },
   "scripts": {
-    "install": "tsc",
+    "build": "tsc",
     "test": "jasmine-node spec",
     "browserify": "./do_browserify.sh"
   },

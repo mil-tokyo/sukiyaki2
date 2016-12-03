@@ -4,6 +4,7 @@
     "module": "commonjs",
     "sourceMap": true,
     "declaration": true,
+    "inlineSources": true,
     "allowUnreachableCode": true
   },
   "files": [
@@ -18,5 +19,6 @@
     "bench/index.ts"
   ],
   "exclude": [
+    "node_modules"
   ]
 }
