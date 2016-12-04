@@ -7,3 +7,7 @@ node_modules
 browser/milsukiyaki2.js
 !docs/**
 !docs_raw/**
+
+example/mnist/data
+example/mnist/model
+!.gitkeep

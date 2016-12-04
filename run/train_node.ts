@@ -10,7 +10,12 @@ import fs = require('fs');
 function train_node(args) {//netdef: string, mean_file: string, lr: number, save_tmpl: string, initial_weight: string = null, cl: boolean = false) {
   var cl: boolean = args.cl;
   if (cl) {
-    $M.initcl();
+    if ($M.initcl()) {
+      console.log("OpenCL initialization succeeded");
+    } else {
+      console.error("OpenCL initialization failed");
+      cl = false;
+    }
   }
   var layers = JSON.parse(fs.readFileSync(args.net, 'utf8'));
   var net = new Network(layers);
@@ -105,6 +110,9 @@ function train_node(args) {//netdef: string, mean_file: string, lr: number, save
 
     var validation_iter = 0;
     var validation_n_batch = Math.floor((<Sukiyaki.Layers.BlobDataLayer>net.layer_instances["d_test"]).length / val_batch_size);
+    if (args.val_iter_limit) {
+      validation_n_batch = Math.min(validation_n_batch, args.val_iter_limit);
+    }
     var validation_sum_accuracy = 0;
     var validation_sum_loss = 0;
     var validation = (start_val: boolean = false) => {
@@ -166,6 +174,7 @@ function main() {
   parser.addArgument(['--batch_div'], { defaultValue: 1, type: Number });
   parser.addArgument(['--val_batch_size'], { defaultValue: 128, type: Number });
   parser.addArgument(['--val_cycle'], { defaultValue: 1000, type: Number });
+  parser.addArgument(['--val_iter_limit'], { defaultValue: 0, type: Number });
   parser.addArgument(['--iter'], { defaultValue: 0, type: Number });
   var args = parser.parseArgs();
   train_node(args);

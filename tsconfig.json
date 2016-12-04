@@ -9,9 +9,6 @@
   },
   "files": [
     "index.ts",
-    "main.ts",
-    "train_imagenet.ts",
-    "train_resnet.ts",
     "spec/sukiyaki.spec.ts",
     "spec/data_augmentation.spec.ts",
     "run/train_node.ts",
