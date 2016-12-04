@@ -1,8 +1,7 @@
 # Sukiyaki2 library
 Deep Learning Library for JavaScript
 
-Currently only raw code is provided.
-Demos and usage instructions will be added within few days.
+Documents are under preparation.
 
 github.io page [Sukiyaki2](https://mil-tokyo.github.io/sukiyaki2/) [MILJS](https://mil-tokyo.github.io/miljs.html)
 
@@ -13,7 +12,7 @@ Since this project is written in TypeScript, transpiling to JavaScript is necess
 git clone https://github.com/mil-tokyo/sukiyaki2
 cd sukiyaki2
 npm install
-npm build
+npm run build
 ```
 
 On `npm install`, it installs [node-opencl](https://github.com/mikeseven/node-opencl) package for GPU computing which allows dramatically faster computation.
@@ -37,3 +36,8 @@ By default, GPU is not used. To try fast computation,
 ```bash
 ./example/mnist/train.sh cl
 ```
+
+# Example in web browser
+They are in `docs/example` directory.
+
+Access to online demo from https://mil-tokyo.github.io/sukiyaki2/
