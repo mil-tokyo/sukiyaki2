@@ -3,7 +3,7 @@
     "name": "d_train",
     "type": "blob_data",
     "params": {
-      "file_prefix": "mnist/mnist_train_8bit",
+      "file_prefix": "example/mnist/data/mnist_train",
       "data_shape": [
         28,
         28,
@@ -26,7 +26,7 @@
     "name": "d_test",
     "type": "blob_data",
     "params": {
-      "file_prefix": "mnist/mnist_test_8bit",
+      "file_prefix": "example/mnist/data/mnist_test",
       "data_shape": [
         28,
         28,
