@@ -9,7 +9,7 @@
 var Sushi = require('./src/sushi');
 module.exports = Sushi;
 
-},{"./src/sushi":10}],2:[function(require,module,exports){
+},{"./src/sushi":11}],2:[function(require,module,exports){
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 // colon object
 // $M.colon(1,3,10) or $M.colon.fromstring('1:3:10');
@@ -474,7 +474,7 @@ function allclose(A, B, rtol, atol, equal_nan) {
 }
 exports.allclose = allclose;
 
-},{"./matrix":6,"./util":11}],5:[function(require,module,exports){
+},{"./matrix":6,"./util":12}],5:[function(require,module,exports){
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 // read/write numpy format matrix file
 "use strict";
@@ -1911,6 +1911,61 @@ function mtimes(A, B) {
 exports.mtimes = mtimes;
 
 },{"./matrix":6}],8:[function(require,module,exports){
+// does polyfill for older browsers
+"use strict";
+function polyfill() {
+    typedarray_fill_all();
+}
+exports.polyfill = polyfill;
+function typedarray_fill_all() {
+    typedarray_fill(Int8Array);
+    typedarray_fill(Uint8Array);
+    typedarray_fill(Uint8ClampedArray);
+    typedarray_fill(Int16Array);
+    typedarray_fill(Uint16Array);
+    typedarray_fill(Int32Array);
+    typedarray_fill(Uint32Array);
+    typedarray_fill(Float32Array);
+    typedarray_fill(Float64Array);
+}
+function typedarray_fill(type) {
+    // https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Array/fill#Polyfill
+    if (!type.prototype.fill) {
+        type.prototype.fill = function (value) {
+            // Steps 1-2.
+            if (this == null) {
+                throw new TypeError('this is null or not defined');
+            }
+            var O = Object(this);
+            // Steps 3-5.
+            var len = O.length >>> 0;
+            // Steps 6-7.
+            var start = arguments[1];
+            var relativeStart = start >> 0;
+            // Step 8.
+            var k = relativeStart < 0 ?
+                Math.max(len + relativeStart, 0) :
+                Math.min(relativeStart, len);
+            // Steps 9-10.
+            var end = arguments[2];
+            var relativeEnd = end === undefined ?
+                len : end >> 0;
+            // Step 11.
+            var final = relativeEnd < 0 ?
+                Math.max(len + relativeEnd, 0) :
+                Math.min(relativeEnd, len);
+            // Step 12.
+            while (k < final) {
+                O[k] = value;
+                k++;
+            }
+            // Step 13.
+            return O;
+        };
+    }
+}
+
+},{}],9:[function(require,module,exports){
 "use strict";
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 var Matrix = require('./matrix');
@@ -2223,7 +2278,7 @@ function std(A, w, dim) {
 }
 exports.std = std;
 
-},{"./func_generator":4,"./matrix":6,"./util":11}],9:[function(require,module,exports){
+},{"./func_generator":4,"./matrix":6,"./util":12}],10:[function(require,module,exports){
 "use strict";
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 var Matrix = require('./matrix');
@@ -2445,9 +2500,10 @@ function ipermute(A, order) {
 }
 exports.ipermute = ipermute;
 
-},{"./colonwrap":3,"./matrix":6}],10:[function(require,module,exports){
+},{"./colonwrap":3,"./matrix":6}],11:[function(require,module,exports){
 "use strict";
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
+var polyfill = require('./polyfill');
 exports.Matrix = require('./matrix');
 exports.Colon = require('./colon');
 exports.colon = require('./colonwrap');
@@ -2459,6 +2515,7 @@ var mul = require('./mul');
 var npy = require('./io/npy');
 //export import MatrixCL = require('./cl/matrix_cl');
 exports.CL = null; // for webcl
+polyfill.polyfill();
 exports.end = -1;
 var initcl_result = null;
 function initcl() {
@@ -2711,15 +2768,124 @@ function _singlemat2number(A) {
     return A;
 }
 //equality http://jp.mathworks.com/help/matlab/relational-operators.html
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) == B(i).
+ */
+exports.eq = function (A, B) {
+    throw new Error();
+};
 exports.eq = func_generator.make_compare_func_all('Number(%a == %b)');
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) >= B(i).
+ */
+exports.ge = function (A, B) {
+    throw new Error();
+};
 exports.ge = func_generator.make_compare_func_all('Number(%a >= %b)');
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) > B(i).
+ */
+exports.gt = function (A, B) {
+    throw new Error();
+};
 exports.gt = func_generator.make_compare_func_all('Number(%a > %b)');
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) <= B(i).
+ */
+exports.le = function (A, B) {
+    throw new Error();
+};
 exports.le = func_generator.make_compare_func_all('Number(%a <= %b)');
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) < B(i).
+ */
+exports.lt = function (A, B) {
+    throw new Error();
+};
 exports.lt = func_generator.make_compare_func_all('Number(%a < %b)');
+/**
+ * Compares elements of two matrices. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if A(i) != B(i).
+ */
+exports.ne = function (A, B) {
+    throw new Error();
+};
 exports.ne = func_generator.make_compare_func_all('Number(%a != %b)');
+/**
+ * Checks if all matrices are equal. Assumes NaN is not equal to NaN.
+ *
+ * @param As Input matrices.
+ * @return true if all matrices are the same regarding both size and value of elements.
+ */
+exports.isequal = function () {
+    var As = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        As[_i - 0] = arguments[_i];
+    }
+    throw new Error();
+};
 exports.isequal = func_generator.isequal;
+/**
+ * Checks if all matrices are equal. Assumes NaN is equal to NaN.
+ *
+ * @param As Input matrices.
+ * @return true if all matrices are the same regarding both size and value of elements.
+ */
+exports.isequaln = function () {
+    var As = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        As[_i - 0] = arguments[_i];
+    }
+    throw new Error();
+};
 exports.isequaln = func_generator.isequaln;
+/**
+ * Compares if elements of two matrices are close. One of the input can be scalar number.
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return logical matrix. 1 if abs(A(i) - B(i)) <= atol + rtol * abs(B(i)).
+ */
+exports.isclose = function (A, B, rtol, atol, equal_nan) {
+    if (rtol === void 0) { rtol = 1e-5; }
+    if (atol === void 0) { atol = 1e-8; }
+    if (equal_nan === void 0) { equal_nan = false; }
+    throw new Error();
+};
 exports.isclose = func_generator.isclose;
+/**
+ * Compares if all the elements of two matrices are close. One of the input can be scalar number. See also [[isclose]]
+ *
+ * @param A Input matrix.
+ * @param B Input matrix.
+ * @return true if all elements of isclose(A, B) are 1.
+ */
+exports.allclose = function (A, B, rtol, atol, equal_nan) {
+    throw new Error();
+};
 exports.allclose = func_generator.allclose;
 exports.plus = func_generator.make_binary_arith_func_all('%a + %b');
 exports.minus = func_generator.make_binary_arith_func_all('%a - %b');
@@ -2824,7 +2990,7 @@ function colonvec(start, stop_step, stop, klass) {
 }
 exports.colonvec = colonvec;
 
-},{"../src/cl/handwrittenjs/sushi_cl":"/src/cl/handwrittenjs/sushi_cl.js","./colon":2,"./colonwrap":3,"./func_generator":4,"./io/npy":5,"./matrix":6,"./mul":7,"./reduction":8,"./shape_converter":9,"./util":11}],11:[function(require,module,exports){
+},{"../src/cl/handwrittenjs/sushi_cl":"/src/cl/handwrittenjs/sushi_cl.js","./colon":2,"./colonwrap":3,"./func_generator":4,"./io/npy":5,"./matrix":6,"./mul":7,"./polyfill":8,"./reduction":9,"./shape_converter":10,"./util":12}],12:[function(require,module,exports){
 "use strict";
 // (c) 2016 Machine Intelligence Laboratory (The University of Tokyo), MIT License.
 var Matrix = require('./matrix');

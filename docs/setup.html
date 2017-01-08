@@ -11,7 +11,7 @@
 ">
 
     <link rel="stylesheet" href="/sukiyaki2/css/main.css">
-    <link rel="canonical" href="https://mil-tokyo.github.com/sukiyaki2/">
+    <link rel="canonical" href="https://mil-tokyo.github.com/sukiyaki2/setup.html">
 </head>
 
 
@@ -52,29 +52,35 @@
 
     <div class="page-content">
       <div class="wrapper">
-        <div class="home">
-  <h1 class="page-heading">Sukiyaki2</h1>
+        <h1 id="setup-of-sukiyaki2-and-introduction-of-basic-usage">Setup of Sukiyaki2 and introduction of basic usage</h1>
 
-  <p>This is the document page for Sukiyaki2, a deep learning library for JavaScript.</p>
+<p>Sukiyaki2 is a deep learning library for JavaScript.
+Sukiyaki2 is designed to achive distributed training of Deep Neural Networks using ordinary personal
+computers by implementing system in JavaScript, which can run on web browsers.
+For training in single computer, it is recommeneded to use node.js environment
+because it is faster and can access filesystem directly
+(even in web browser, setting up a server to supply dataset is needed).</p>
 
-  <p><a href="api/">API Reference</a></p>
+<p>In this page, the way of setting up Sukiyaki2 on node.js environment and running basic example is described.</p>
 
-  <div>
-  Demos:<br>
-  <a href="https://mil-tokyo.github.io/sukiyaki2/examples/mnist/">Training of digit recognition</a><br>
-  <a href="https://mil-tokyo.github.io/sukiyaki2/examples/camera/">Digit recognition from camera<img src="images/ss_camerademo.png" height="320px"></a>
-  <!-- forcing SSL to enable touching camera from JavaScript in Chrome -->
-  </div>
+<h2 id="setup-for-nodejs">Setup for node.js</h2>
+<p>Since this project is written in TypeScript, transpiling to JavaScript is necessary.</p>
 
-  <h1 class="page-heading">Posts</h1>
+<pre><code class="language-bash">git clone https://github.com/mil-tokyo/sukiyaki2
+cd sukiyaki2
+npm install
+npm run build
+</code></pre>
 
-  <ul class="post-list">
-    
-  </ul>
+<p>On <code>npm install</code>, it installs <a href="https://github.com/mikeseven/node-opencl">node-opencl</a> package for GPU computing which allows dramatically faster computation.
+In my environment (Ubuntu 14.04 + NVIDIA CUDA 7.5), installation with node-opencl requires additional environment variables.</p>
 
-  <p class="rss-subscribe">subscribe <a href="/sukiyaki2/feed.xml">via RSS</a></p>
+<pre><code class="language-bash">CPLUS_INCLUDE_PATH=/usr/local/cuda/include LIBRARY_PATH=/usr/local/cuda/lib64 npm install
+</code></pre>
 
-</div>
+<h2 id="running-mnist-digit-recognition-training">Running MNIST digit recognition training</h2>
+<p>This example trains Deep Convolutional Neural Networks (DCNNs) using <a href="http://yann.lecun.com/exdb/mnist/">“MNIST handwritten digit database”</a>.</p>
+
 
       </div>
     </div>
