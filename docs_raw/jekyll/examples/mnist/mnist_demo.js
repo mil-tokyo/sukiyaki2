@@ -37,6 +37,8 @@
   var accuracy_history_sum = 0;
   var net = null;
   var optimizer = null;
+  var speed_log_queue = [];//[[Date, total_trained_images]]
+  var speed_log_queue_size = 100;
   function setup_training() {
     time_begin = Date.now();
     iter = 0;
@@ -45,10 +47,29 @@
     var netdef_json = network_definition;
     net = new Sukiyaki.Network(netdef_json);
     net.init(function () {
+      update_speed_log(0);
       write_status('Training');
       optimizer = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, train_lr, 0.9);
       train_iteration();
     });
+  }
+
+  function update_speed_log(newly_trained_images) {
+    var last_trained_images = 0;
+    if (speed_log_queue.length != 0) {
+      last_trained_images = speed_log_queue[speed_log_queue.length - 1][1];
+    }
+    last_trained_images += newly_trained_images;
+    var current_date = Date.now()
+    speed_log_queue.push([current_date, last_trained_images]);
+
+    if (speed_log_queue.length > speed_log_queue_size) {
+      speed_log_queue.shift();
+    }
+    // calculate speed
+    var first_item = speed_log_queue[0];
+    var images_per_sec = (last_trained_images - first_item[1]) / (current_date - first_item[0] + 1) * 1000;//+1 to avoid zero division
+    return images_per_sec;
   }
 
   function train_iteration() {
@@ -81,8 +102,9 @@
         accuracy_history_sum += cur_accuracy;
       }
       var mean_accuracy = accuracy_history_sum / accuracy_history.length;
+      var images_per_sec = update_speed_log(train_batch_size);
       $("#mean-accuracy").text((mean_accuracy * 100).toFixed(1));
-      $("#iter-num").text('Iteration: ' + iter);
+      $("#iter-num").text('' + images_per_sec.toFixed(1) + ' images/sec, ' + (iter + 1) + ' updates');
       console.log('accuracy: ' + cur_accuracy);
       net.release();
       iter++;
