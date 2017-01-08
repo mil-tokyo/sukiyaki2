@@ -12,17 +12,17 @@
   }
 
   var network_definition = [{ "params": { "random_crop": false, "random_flip": false, "scale": 0.00390625, "input_klass": "uint8", "out_shape": [28, 28] }, "type": "data_augmentation", "name": "aug_test", "outputs": ["augdata"], "inputs": ["data"] },
-{ "params": { "out_size": 10, "stride": 1, "pad": 0, "in_size": 1, "ksize": 5 }, "type": "convolution_2d", "name": "conv1", "outputs": ["conv1"], "inputs": ["augdata"] },
-{ "params": {}, "type": "relu", "name": "relu1", "outputs": ["relu1"], "inputs": ["conv1"] },
-{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool1", "outputs": ["pool1"], "inputs": ["relu1"] },
-{ "params": { "out_size": 12, "stride": 1, "pad": 0, "in_size": 10, "ksize": 5 }, "type": "convolution_2d", "name": "conv2", "outputs": ["conv2"], "inputs": ["pool1"] },
-{ "params": {}, "type": "relu", "name": "relu2", "outputs": ["relu2"], "inputs": ["conv2"] },
-{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool2", "outputs": ["pool2"], "inputs": ["relu2"] },
-{ "params": { "out_size": 128, "in_shape": [4, 4, 12] }, "type": "linear", "name": "fc3", "outputs": ["fc3"], "inputs": ["pool2"] },
-{ "params": {}, "type": "relu", "name": "relu3", "outputs": ["relu3"], "inputs": ["fc3"] },
-{ "params": { "out_size": 10, "in_shape": [128] }, "type": "linear", "name": "fc4", "outputs": ["pred"], "inputs": ["relu3"] },
-{"params": {}, "type": "softmax_cross_entropy", "name": "l", "outputs": ["loss"], "inputs": ["pred", "label"]},
-{"inputs": ["pred", "label"], "name": "a", "outputs": ["accuracy"], "params": {}, "phase": ["test"], "type": "accuracy"}];
+  { "params": { "out_size": 10, "stride": 1, "pad": 0, "in_size": 1, "ksize": 5 }, "type": "convolution_2d", "name": "conv1", "outputs": ["conv1"], "inputs": ["augdata"] },
+  { "params": {}, "type": "relu", "name": "relu1", "outputs": ["relu1"], "inputs": ["conv1"] },
+  { "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool1", "outputs": ["pool1"], "inputs": ["relu1"] },
+  { "params": { "out_size": 12, "stride": 1, "pad": 0, "in_size": 10, "ksize": 5 }, "type": "convolution_2d", "name": "conv2", "outputs": ["conv2"], "inputs": ["pool1"] },
+  { "params": {}, "type": "relu", "name": "relu2", "outputs": ["relu2"], "inputs": ["conv2"] },
+  { "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool2", "outputs": ["pool2"], "inputs": ["relu2"] },
+  { "params": { "out_size": 128, "in_shape": [4, 4, 12] }, "type": "linear", "name": "fc3", "outputs": ["fc3"], "inputs": ["pool2"] },
+  { "params": {}, "type": "relu", "name": "relu3", "outputs": ["relu3"], "inputs": ["fc3"] },
+  { "params": { "out_size": 10, "in_shape": [128] }, "type": "linear", "name": "fc4", "outputs": ["pred"], "inputs": ["relu3"] },
+  { "params": {}, "type": "softmax_cross_entropy", "name": "l", "outputs": ["loss"], "inputs": ["pred", "label"] },
+  { "inputs": ["pred", "label"], "name": "a", "outputs": ["accuracy"], "params": {}, "phase": ["test"], "type": "accuracy" }];
 
   var image_width = 28;
   var record_size = 28 * 28;
@@ -47,7 +47,7 @@
     var netdef_json = network_definition;
     net = new Sukiyaki.Network(netdef_json);
     net.init(function () {
-      update_speed_log(0);
+      update_speed_log();
       write_status('Training');
       optimizer = new Sukiyaki.Optimizers.OptimizerMomentumSGD(net, train_lr, 0.9);
       train_iteration();
@@ -55,13 +55,16 @@
   }
 
   function update_speed_log(newly_trained_images) {
-    var last_trained_images = 0;
-    if (speed_log_queue.length != 0) {
-      last_trained_images = speed_log_queue[speed_log_queue.length - 1][1];
+    var current_date = Date.now();
+    if (newly_trained_images == null) {
+      //reset
+      speed_log_queue = [];
+      speed_log_queue.push([current_date, 0]);
+    } else {
+      var last_trained_images = speed_log_queue[speed_log_queue.length - 1][1];
+      last_trained_images += newly_trained_images;
+      speed_log_queue.push([current_date, last_trained_images]);
     }
-    last_trained_images += newly_trained_images;
-    var current_date = Date.now()
-    speed_log_queue.push([current_date, last_trained_images]);
 
     if (speed_log_queue.length > speed_log_queue_size) {
       speed_log_queue.shift();
@@ -165,9 +168,9 @@
   var image_rawstr = null;
   function load_label() {
     var xhr = new XMLHttpRequest();
-    xhr.responseType = 'text';
     xhr.overrideMimeType('text/plain; charset=x-user-defined');
     xhr.open("GET", "https://mil-tokyo.github.io/datasets/mnist/t10k-labels-idx1-ubyte.txt");
+    xhr.responseType = 'text';
 
     xhr.onload = function (e) {
       label_rawstr = xhr.response;
@@ -190,9 +193,9 @@
 
   function load_image() {
     var xhr = new XMLHttpRequest();
-    xhr.responseType = 'text';
     xhr.overrideMimeType('text/plain; charset=x-user-defined');
     xhr.open("GET", "https://mil-tokyo.github.io/datasets/mnist/t10k-images-idx3-ubyte.txt");
+    xhr.responseType = 'text';
 
     xhr.onprogress = function (e) {
       var progress_percent = e.loaded / e.total * 100;
@@ -250,6 +253,7 @@
         continue_training = true;
         write_status('Training');
         $("#stop-resume-training").text('Stop');
+        update_speed_log();//reset speed
         setTimeout(train_iteration, 0);
       }
     });
