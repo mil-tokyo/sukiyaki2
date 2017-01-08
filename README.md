@@ -2,6 +2,8 @@
 Deep Learning Library for JavaScript
 
 Documents are under preparation.
+Currently, example of training MNIST digit recognition for node.js environment is provided.
+Code for distributed computing using web browser clients will be uploaded in near future. 
 
 github.io page [Sukiyaki2](https://mil-tokyo.github.io/sukiyaki2/) [MILJS](https://mil-tokyo.github.io/miljs.html)
 
