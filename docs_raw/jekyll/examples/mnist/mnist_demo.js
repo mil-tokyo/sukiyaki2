@@ -11,6 +11,19 @@
     msg_box.val(msg);
   }
 
+  var network_definition = [{ "params": { "random_crop": false, "random_flip": false, "scale": 0.00390625, "input_klass": "uint8", "out_shape": [28, 28] }, "type": "data_augmentation", "name": "aug_test", "outputs": ["augdata"], "inputs": ["data"] },
+{ "params": { "out_size": 10, "stride": 1, "pad": 0, "in_size": 1, "ksize": 5 }, "type": "convolution_2d", "name": "conv1", "outputs": ["conv1"], "inputs": ["augdata"] },
+{ "params": {}, "type": "relu", "name": "relu1", "outputs": ["relu1"], "inputs": ["conv1"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool1", "outputs": ["pool1"], "inputs": ["relu1"] },
+{ "params": { "out_size": 12, "stride": 1, "pad": 0, "in_size": 10, "ksize": 5 }, "type": "convolution_2d", "name": "conv2", "outputs": ["conv2"], "inputs": ["pool1"] },
+{ "params": {}, "type": "relu", "name": "relu2", "outputs": ["relu2"], "inputs": ["conv2"] },
+{ "params": { "stride": 2, "pad": 0, "type": "max", "ksize": 2 }, "type": "pooling_2d", "name": "pool2", "outputs": ["pool2"], "inputs": ["relu2"] },
+{ "params": { "out_size": 128, "in_shape": [4, 4, 12] }, "type": "linear", "name": "fc3", "outputs": ["fc3"], "inputs": ["pool2"] },
+{ "params": {}, "type": "relu", "name": "relu3", "outputs": ["relu3"], "inputs": ["fc3"] },
+{ "params": { "out_size": 10, "in_shape": [128] }, "type": "linear", "name": "fc4", "outputs": ["pred"], "inputs": ["relu3"] },
+{"params": {}, "type": "softmax_cross_entropy", "name": "l", "outputs": ["loss"], "inputs": ["pred", "label"]},
+{"inputs": ["pred", "label"], "name": "a", "outputs": ["accuracy"], "params": {}, "phase": ["test"], "type": "accuracy"}];
+
   var image_width = 28;
   var record_size = 28 * 28;
   var test_length = 1000;
@@ -29,7 +42,7 @@
     iter = 0;
     accuracy_history = [];
     accuracy_history_sum = 0;
-    var netdef_json = JSON.parse($("textarea[name='netdef']").val());
+    var netdef_json = network_definition;
     net = new Sukiyaki.Network(netdef_json);
     net.init(function () {
       write_status('Training');
@@ -219,25 +232,12 @@
       }
     });
 
-    $("#change-network").click(function (e) {
-      continue_training = false;
-      write_status('Loading new network');
-      setTimeout(function () {
-        continue_training = true;
-        setup_training();
-      }, 1000);
-    });
-
     $("#learning-rate").change(function (e) {
       train_lr = Number($("#learning-rate").val());
       console.log('Learning rate changes to ' + train_lr);
       if (optimizer) {
         optimizer.lr = train_lr;
       }
-    });
-
-    $("#view-network-def").click(function (e) {
-      $("div[name='netdef']").toggle();
     });
 
     main();
